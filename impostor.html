@@ -6,6 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jogo do Impostor</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+        :root {
+            --blue: #5B6BAF;
+            --blue-dark: #4a5a9e;
+            --blue-light: #8b9fd4;
+            --rose: #D46475;
+            --rose-dark: #b8505f;
+            --rose-light: #f09aaa;
+            --bg: #0d0e14;
+            --surface: rgba(91,107,175,0.06);
+            --border-blue: rgba(91,107,175,0.35);
+            --border-rose: rgba(212,100,117,0.35);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -19,8 +34,8 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto Mono', sans-serif;
-            background: #000;
+            font-family: 'Exo 2', sans-serif;
+            background: var(--bg);
             color: #fff;
             font-size: 16px;
         }
@@ -62,15 +77,18 @@
         }
 
         @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 16px rgba(212,100,117,0.4); }
+            50% { box-shadow: 0 0 28px rgba(212,100,117,0.7); }
+        }
 
-            0%,
-            100% {
-                box-shadow: 0 0 20px rgba(69, 109, 255, 0.5);
-            }
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
 
-            50% {
-                box-shadow: 0 0 40px rgba(69, 109, 255, 0.8);
-            }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
         }
 
         .animate-fade-in {
@@ -98,7 +116,7 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #456DFF;
+            background: #D46475;
             border-radius: 5px;
         }
 
@@ -116,7 +134,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(to bottom right, #000, #0c1a47, #000);
+            background: radial-gradient(ellipse at 20% 20%, rgba(91,107,175,0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(212,100,117,0.12) 0%, transparent 50%),
+                        #0d0e14;
             position: relative;
             overflow: hidden;
             padding: 1rem;
@@ -126,11 +146,13 @@
             content: '';
             position: fixed;
             inset: 0;
-            background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 1px);
-            background-size: 50px 50px;
-            opacity: 0.05;
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(255,255,255,0.07) 1px, transparent 1px);
+            background-size: 40px 40px;
             pointer-events: none;
         }
+
+
 
         .content {
             position: relative;
@@ -151,10 +173,8 @@
             font-weight: 900;
             margin-bottom: 1.5rem;
             text-align: center;
-            background: linear-gradient(to right, #60a5fa, #ffffff, #60a5fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #D46475;
+            letter-spacing: -0.02em;
         }
 
         .subtitle {
@@ -168,7 +188,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(to right, #456DFF, #3d5ce8);
+            background: #D46475;
             color: #ffffff;
             padding: 1rem 2.5rem;
             font-size: 1.25rem;
@@ -177,22 +197,24 @@
             border-radius: 0.75rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 20px rgba(212,100,117,0.35);
             display: inline-flex;
             align-items: center;
             gap: 0.75rem;
+            font-family: 'Exo 2', sans-serif;
+            letter-spacing: 0.02em;
         }
 
         .btn-primary:hover {
-            transform: scale(1.05);
-            box-shadow: 0 25px 50px rgba(69, 109, 255, 0.3);
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 25px 50px rgba(69, 109, 255, 0.4), 0 10px 20px rgba(212,100,117,0.3);
         }
 
         .btn-back {
-            background-color: #456DFF;
+            background: rgba(91,107,175,0.15);
+            border: 1px solid rgba(91,107,175,0.4);
             color: #ffffff;
             padding: 0.5rem 1rem;
-            border: none;
             border-radius: 0.5rem;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -205,10 +227,12 @@
             top: 2rem;
             left: 2rem;
             z-index: 20;
+            font-family: 'Exo 2', sans-serif;
         }
 
         .btn-back:hover {
-            background-color: #3d5ce8;
+            background: rgba(91,107,175,0.3);
+            border-color: rgba(212,100,117,0.5);
         }
 
         .grid-container {
@@ -219,15 +243,20 @@
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(69, 109, 255, 0.3);
-            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(69, 109, 255, 0.25);
+            border-radius: 1rem;
             padding: 1.5rem;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
             transition: all 0.3s ease;
             animation: slideInRight 0.6s ease-out;
             cursor: pointer;
             text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .card:nth-child(even) {
+            border-color: rgba(212, 100, 117, 0.25);
         }
 
         .card:nth-child(2) {
@@ -247,9 +276,10 @@
         }
 
         .card:hover {
-            border-color: rgba(69, 109, 255, 1);
-            background: rgba(69, 109, 255, 0.1);
+            border-color: rgba(212,100,117,0.8);
+            background: rgba(91,107,175,0.12);
             transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(212,100,117,0.15);
         }
 
         .card-emoji {
@@ -270,12 +300,14 @@
         }
 
         .form-section {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(69, 109, 255, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(69, 109, 255, 0.2);
+            border-left: 3px solid #D46475;
             border-radius: 0.75rem;
             padding: 1.5rem;
             margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
 
         .form-label {
@@ -308,8 +340,9 @@
         }
 
         .radio-option.active {
-            background: rgba(69, 109, 255, 0.2);
-            border-color: #456DFF;
+            background: rgba(91,107,175,0.18);
+            border-color: #5B6BAF;
+            box-shadow: 0 0 0 1px rgba(212,100,117,0.2);
         }
 
         .radio-input {
@@ -317,7 +350,7 @@
             height: 20px;
             margin-right: 1rem;
             cursor: pointer;
-            accent-color: #456DFF;
+            accent-color: #D46475;
         }
 
         .radio-label {
@@ -384,12 +417,12 @@
 
         .text-input:focus {
             outline: none;
-            border-color: rgba(69, 109, 255, 1);
-            box-shadow: 0 0 0 2px rgba(69, 109, 255, 0.2);
+            border-color: #D46475;
+            box-shadow: 0 0 0 2px rgba(212, 100, 117, 0.2);
         }
 
         .btn-add {
-            background: #456DFF;
+            background: #D46475;
             color: #ffffff;
             padding: 0.75rem 1.5rem;
             border: none;
@@ -400,16 +433,18 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-family: 'Exo 2', sans-serif;
         }
 
         .btn-add:hover {
-            background: #3d5ce8;
+            opacity: 0.85;
+            transform: scale(1.05);
         }
 
         .btn-start {
             width: 100%;
             padding: 1rem 1.5rem;
-            background: linear-gradient(to right, #456DFF, #3d5ce8);
+            background: #D46475;
             color: #ffffff;
             border: none;
             border-radius: 0.75rem;
@@ -421,12 +456,14 @@
             align-items: center;
             justify-content: center;
             gap: 0.75rem;
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 18px rgba(212,100,117,0.3);
+            font-family: 'Exo 2', sans-serif;
+            letter-spacing: 0.02em;
         }
 
         .btn-start:hover:not(:disabled) {
-            transform: scale(1.05);
-            box-shadow: 0 25px 50px rgba(69, 109, 255, 0.3);
+            transform: scale(1.02) translateY(-2px);
+            box-shadow: 0 25px 50px rgba(69, 109, 255, 0.35), 0 10px 20px rgba(212,100,117,0.25);
         }
 
         .btn-start:disabled {
@@ -443,13 +480,14 @@
         }
 
         .reveal-card {
-            background: linear-gradient(135deg, #456DFF, #60a5fa);
+            background: #1a1e2e;
             border-radius: 1.5rem;
             padding: 3rem 2rem;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             text-align: center;
             max-width: 500px;
             animation: fadeIn 0.6s ease-out;
+            border: 1px solid rgba(255,255,255,0.15);
         }
 
         .reveal-label {
@@ -482,7 +520,7 @@
         .word-display {
             font-size: 2rem;
             font-weight: 900;
-            color: #fcd34d;
+            color: #e8a87c;
             margin-bottom: 1rem;
         }
 
@@ -493,18 +531,19 @@
         }
 
         .impostor-warning {
-            background: rgba(239, 68, 68, 0.2);
-            border: 2px solid #ef4444;
-            color: #fca5a5;
+            background: rgba(212, 100, 117, 0.2);
+            border: 2px solid #D46475;
+            color: #f09aaa;
             padding: 1rem;
             border-radius: 0.75rem;
             margin-bottom: 2rem;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.05em;
         }
 
         .btn-continue {
-            background: #ffffff;
-            color: #456DFF;
+            background: rgba(255,255,255,0.95);
+            color: #1a1e2e;
             padding: 0.75rem 2rem;
             border: none;
             border-radius: 0.5rem;
@@ -512,11 +551,13 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 1rem;
+            font-family: 'Exo 2', sans-serif;
         }
 
         .btn-continue:hover {
-            background: #f3f4f6;
+            background: #ffffff;
             transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         /* Game Screen */
@@ -525,9 +566,11 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 0.75rem;
+            padding: 1.25rem;
+            background: rgba(91,107,175,0.1);
+            border: 1px solid rgba(91,107,175,0.25);
+            border-radius: 1rem;
+            backdrop-filter: blur(8px);
         }
 
         .header-item {
@@ -542,15 +585,16 @@
         .header-value {
             font-size: 2rem;
             font-weight: 900;
-            color: #60a5fa;
+            color: #D46475;
         }
 
         .player-turn-card {
-            background: linear-gradient(135deg, #456DFF, #60a5fa);
+            background: rgba(91,107,175,0.12);
+            border: 1px solid rgba(91,107,175,0.4);
             border-radius: 1.5rem;
             padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255,255,255,0.1);
             text-align: center;
         }
 
@@ -587,9 +631,9 @@
         }
 
         .player-card.active {
-            background: #456DFF;
-            border-color: #60a5fa;
-            box-shadow: 0 10px 15px rgba(69, 109, 255, 0.5);
+            background: #5B6BAF;
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 8px 20px rgba(91,107,175,0.4);
         }
 
         .player-card:hover:not(.active) {
@@ -631,9 +675,9 @@
         }
 
         .vote-btn.selected {
-            background: #ef4444;
+            background: #D46475;
             color: #ffffff;
-            box-shadow: 0 10px 15px rgba(239, 68, 68, 0.5);
+            box-shadow: 0 10px 20px rgba(212, 100, 117, 0.4);
         }
 
         .vote-btn:hover:not(.selected) {
@@ -657,19 +701,23 @@
         }
 
         .btn-next {
-            background: #456DFF;
+            background: #5B6BAF;
+            font-family: 'Exo 2', sans-serif;
         }
 
         .btn-next:hover:not(:disabled) {
-            background: #3d5ce8;
+            background: #4a5a9e;
+            transform: translateY(-1px);
         }
 
         .btn-eliminate {
-            background: #ef4444;
+            background: #D46475;
+            font-family: 'Exo 2', sans-serif;
         }
 
         .btn-eliminate:hover {
-            background: #dc2626;
+            background: #b8505f;
+            transform: translateY(-1px);
         }
 
         .btn-next:disabled {
@@ -680,17 +728,19 @@
         .btn-finish {
             width: 100%;
             padding: 0.75rem 1.5rem;
-            background: linear-gradient(to right, #22c55e, #16a34a);
+            background: #5B6BAF;
             border: none;
             border-radius: 0.75rem;
             color: #ffffff;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-family: 'Exo 2', sans-serif;
         }
 
         .btn-finish:hover {
-            transform: scale(1.05);
+            transform: scale(1.02) translateY(-2px);
+            box-shadow: 0 10px 25px rgba(91,107,175,0.3);
         }
 
         .svg-icon {
@@ -706,7 +756,7 @@
         }
 
         .player-count strong {
-            color: #60a5fa;
+            color: #D46475;
             font-weight: 700;
         }
 
@@ -725,19 +775,28 @@
 <body>
     <!-- Menu Principal -->
     <div id="menuScreen" class="screen active">
+        <!-- Decorative orbs -->
+        <div style="position:absolute;top:10%;left:10%;width:300px;height:300px;background:rgba(91,107,175,0.08);border-radius:50%;filter:blur(40px);pointer-events:none;animation:float 6s ease-in-out infinite;"></div>
+        <div style="position:absolute;bottom:15%;right:10%;width:250px;height:250px;background:rgba(212,100,117,0.08);border-radius:50%;filter:blur(40px);pointer-events:none;animation:float 8s ease-in-out infinite reverse;"></div>
         <div class="content">
             <div class="container" style="text-align: center; padding-top: 4rem;">
+                <div style="font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.25em;color:#D46475;margin-bottom:1.5rem;opacity:0.8;text-transform:uppercase;">● Jogo de Dedução Social ●</div>
                 <h1 class="title">Jogo do Impostor</h1>
                 <p class="subtitle">
                     Um jogo de dedução social onde alguém é o Impostor!
                 </p>
-                <button class="btn-primary" onclick="goToThemes()">
+                <button class="btn-primary glow" onclick="goToThemes()">
                     <svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                         fill="currentColor">
                         <polygon points="5 3 19 12 5 21 5 3"></polygon>
                     </svg>
                     Começar Jogo
                 </button>
+                <div style="margin-top:3rem;display:flex;justify-content:center;gap:2rem;opacity:0.4;">
+                    <div style="width:8px;height:8px;border-radius:50%;background:#5B6BAF;animation:bounce 2s infinite;"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:#D46475;animation:bounce 2s infinite 0.3s;"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:#5B6BAF;animation:bounce 2s infinite 0.6s;"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -846,7 +905,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <h2 class="title" style="margin-bottom: 0;">Jogo em Andamento</h2>
                     <button class="btn-back" onclick="restartGame()"
-                        style="position: static; margin-bottom: 0; background: #3d5ce8;">↻ Reiniciar</button>
+                        style="position: static; margin-bottom: 0; background: #4a5a9e;">↻ Reiniciar</button>
                 </div>
 
                 <div class="game-header">
