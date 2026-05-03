@@ -81,11 +81,6 @@
             50% { box-shadow: 0 0 28px rgba(212,100,117,0.7); }
         }
 
-        @keyframes shimmer {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
-        }
-
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-8px); }
@@ -151,8 +146,6 @@
             background-size: 40px 40px;
             pointer-events: none;
         }
-
-
 
         .content {
             position: relative;
@@ -533,6 +526,13 @@
             font-style: italic;
         }
 
+        .question-display {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #dbeafe;
+            line-height: 1.6;
+        }
+
         .impostor-warning {
             background: rgba(212, 100, 117, 0.2);
             border: 2px solid #D46475;
@@ -778,7 +778,6 @@
 <body>
     <!-- Menu Principal -->
     <div id="menuScreen" class="screen active">
-        <!-- Decorative orbs -->
         <div style="position:absolute;top:10%;left:10%;width:300px;height:300px;background:rgba(91,107,175,0.08);border-radius:50%;filter:blur(40px);pointer-events:none;animation:float 6s ease-in-out infinite;"></div>
         <div style="position:absolute;bottom:15%;right:10%;width:250px;height:250px;background:rgba(212,100,117,0.08);border-radius:50%;filter:blur(40px);pointer-events:none;animation:float 8s ease-in-out infinite reverse;"></div>
         <div class="content">
@@ -838,6 +837,13 @@
                                 <strong>Modo Consciente 🎭</strong><br>
                                 <span style="font-size: 0.85rem; color: #b3bdc9;">O impostor SABE que é impostor e
                                     recebe uma dica para descobrir a palavra</span>
+                            </span>
+                        </label>
+                        <label class="radio-option" onclick="selectMode('question')">
+                            <input type="radio" name="mode" value="question" class="radio-input">
+                            <span class="radio-label">
+                                <strong>Modo Pergunta 🎤</strong><br>
+                                <span style="font-size: 0.85rem; color: #b3bdc9;">Respondem perguntas sobre o tema. O impostor recebe uma pergunta diferente</span>
                             </span>
                         </label>
                     </div>
@@ -929,7 +935,7 @@
                 <div class="player-turn-card">
                     <div class="turn-label">Próximo Jogador</div>
                     <div class="turn-name" id="nextPlayerName">--</div>
-                    <button class="btn-continue" onclick="showRevealScreen()">Ver Sua Palavra</button>
+                    <button class="btn-continue" onclick="showRevealScreen()">Ver Sua Pergunta/Palavra</button>
                 </div>
 
                 <div>
@@ -953,1015 +959,391 @@
     </div>
 
     <script>
-        // Temas com 50 palavras e dicas
+        // Temas com 50 palavras, dicas e 20 perguntas
         const themes = {
             comida: {
                 name: 'Comida 🍔',
                 emoji: '🍔',
-                words: [{
-                        word: 'Pizza',
-                        hint: 'queijo'
-                    },
-                    {
-                        word: 'Hamburger',
-                        hint: 'carne'
-                    },
-                    {
-                        word: 'Sushi',
-                        hint: 'peixe'
-                    },
-                    {
-                        word: 'Macarrão',
-                        hint: 'massa'
-                    },
-                    {
-                        word: 'Arroz',
-                        hint: 'grão'
-                    },
-                    {
-                        word: 'Feijão',
-                        hint: 'legume'
-                    },
-                    {
-                        word: 'Frango',
-                        hint: 'ave'
-                    },
-                    {
-                        word: 'Bife',
-                        hint: 'carne'
-                    },
-                    {
-                        word: 'Peixe',
-                        hint: 'mar'
-                    },
-                    {
-                        word: 'Salada',
-                        hint: 'verdura'
-                    },
-                    {
-                        word: 'Sopa',
-                        hint: 'líquido'
-                    },
-                    {
-                        word: 'Pão',
-                        hint: 'massa'
-                    },
-                    {
-                        word: 'Bolo',
-                        hint: 'doce'
-                    },
-                    {
-                        word: 'Biscoito',
-                        hint: 'crocante'
-                    },
-                    {
-                        word: 'Sorvete',
-                        hint: 'gelado'
-                    },
-                    {
-                        word: 'Chocolate',
-                        hint: 'cacau'
-                    },
-                    {
-                        word: 'Açúcar',
-                        hint: 'doce'
-                    },
-                    {
-                        word: 'Leite',
-                        hint: 'bebida'
-                    },
-                    {
-                        word: 'Queijo',
-                        hint: 'laticínio'
-                    },
-                    {
-                        word: 'Manteiga',
-                        hint: 'gordura'
-                    },
-                    {
-                        word: 'Ovo',
-                        hint: 'galinha'
-                    },
-                    {
-                        word: 'Mel',
-                        hint: 'abelha'
-                    },
-                    {
-                        word: 'Sal',
-                        hint: 'tempero'
-                    },
-                    {
-                        word: 'Pimenta',
-                        hint: 'ardido'
-                    },
-                    {
-                        word: 'Alho',
-                        hint: 'tempero'
-                    },
-                    {
-                        word: 'Cebola',
-                        hint: 'camadas'
-                    },
-                    {
-                        word: 'Tomate',
-                        hint: 'vermelho'
-                    },
-                    {
-                        word: 'Alface',
-                        hint: 'folha'
-                    },
-                    {
-                        word: 'Cenoura',
-                        hint: 'raiz'
-                    },
-                    {
-                        word: 'Batata',
-                        hint: 'tubérculo'
-                    },
-                    {
-                        word: 'Milho',
-                        hint: 'espiga'
-                    },
-                    {
-                        word: 'Maçã',
-                        hint: 'fruta'
-                    },
-                    {
-                        word: 'Banana',
-                        hint: 'amarelo'
-                    },
-                    {
-                        word: 'Laranja',
-                        hint: 'cítrico'
-                    },
-                    {
-                        word: 'Morango',
-                        hint: 'pequeno'
-                    },
-                    {
-                        word: 'Melancia',
-                        hint: 'grande'
-                    },
-                    {
-                        word: 'Abacaxi',
-                        hint: 'tropical'
-                    },
-                    {
-                        word: 'Uva',
-                        hint: 'cacho'
-                    },
-                    {
-                        word: 'Limão',
-                        hint: 'azedo'
-                    },
-                    {
-                        word: 'Café',
-                        hint: 'amargo'
-                    },
-                    {
-                        word: 'Chá',
-                        hint: 'folha'
-                    },
-                    {
-                        word: 'Suco',
-                        hint: 'fruta'
-                    },
-                    {
-                        word: 'Refrigerante',
-                        hint: 'gás'
-                    },
-                    {
-                        word: 'Cerveja',
-                        hint: 'álcool'
-                    },
-                    {
-                        word: 'Vinho',
-                        hint: 'uva'
-                    },
-                    {
-                        word: 'Água',
-                        hint: 'líquido'
-                    },
-                    {
-                        word: 'Azeite',
-                        hint: 'óleo'
-                    },
-                    {
-                        word: 'Molho',
-                        hint: 'tempero'
-                    },
-                    {
-                        word: 'Doce',
-                        hint: 'açúcar'
-                    }
+                questions: [
+                    'Qual é sua comida favorita?',
+                    'O que você gosta de comer no café da manhã?',
+                    'Qual é sua bebida preferida?',
+                    'Qual é sua sobremesa favorita?',
+                    'O que você mais gosta de comer em um restaurante?',
+                    'Qual fruta você mais gosta?',
+                    'Qual é seu prato mais fácil de preparar?',
+                    'Qual é seu tempero favorito?',
+                    'Você come algo específico no final de semana?',
+                    'Qual comida você nunca comeria?',
+                    'O que você pede em um fast food?',
+                    'Você prefere café da manhã doce ou salgado?',
+                    'Qual é a comida que mais lhe traz memórias boas?',
+                    'Você gosta de cozinhar ou prefere que façam para você?',
+                    'Qual é sua pizza favorita?',
+                    'Você prefere comida quente ou fria?',
+                    'Qual é a comida que você comeria todo dia sem se cansar?'
+                ],
+                words: [
+                    { word: 'Pizza', hint: 'queijo' },
+                    { word: 'Hamburger', hint: 'carne' },
+                    { word: 'Sushi', hint: 'peixe' },
+                    { word: 'Macarrão', hint: 'massa' },
+                    { word: 'Arroz', hint: 'grão' },
+                    { word: 'Feijão', hint: 'legume' },
+                    { word: 'Frango', hint: 'ave' },
+                    { word: 'Bife', hint: 'carne' },
+                    { word: 'Peixe', hint: 'mar' },
+                    { word: 'Salada', hint: 'verdura' },
+                    { word: 'Sopa', hint: 'líquido' },
+                    { word: 'Pão', hint: 'massa' },
+                    { word: 'Bolo', hint: 'doce' },
+                    { word: 'Biscoito', hint: 'crocante' },
+                    { word: 'Sorvete', hint: 'gelado' },
+                    { word: 'Chocolate', hint: 'cacau' },
+                    { word: 'Açúcar', hint: 'doce' },
+                    { word: 'Leite', hint: 'bebida' },
+                    { word: 'Queijo', hint: 'laticínio' },
+                    { word: 'Manteiga', hint: 'gordura' },
+                    { word: 'Ovo', hint: 'galinha' },
+                    { word: 'Mel', hint: 'abelha' },
+                    { word: 'Sal', hint: 'tempero' },
+                    { word: 'Pimenta', hint: 'ardido' },
+                    { word: 'Alho', hint: 'tempero' },
+                    { word: 'Cebola', hint: 'camadas' },
+                    { word: 'Tomate', hint: 'vermelho' },
+                    { word: 'Alface', hint: 'folha' },
+                    { word: 'Cenoura', hint: 'raiz' },
+                    { word: 'Batata', hint: 'tubérculo' },
+                    { word: 'Milho', hint: 'espiga' },
+                    { word: 'Maçã', hint: 'fruta' },
+                    { word: 'Banana', hint: 'amarelo' },
+                    { word: 'Laranja', hint: 'cítrico' },
+                    { word: 'Morango', hint: 'pequeno' },
+                    { word: 'Melancia', hint: 'grande' },
+                    { word: 'Abacaxi', hint: 'tropical' },
+                    { word: 'Uva', hint: 'cacho' },
+                    { word: 'Limão', hint: 'azedo' },
+                    { word: 'Café', hint: 'amargo' },
+                    { word: 'Chá', hint: 'folha' },
+                    { word: 'Suco', hint: 'fruta' },
+                    { word: 'Refrigerante', hint: 'gás' },
+                    { word: 'Cerveja', hint: 'álcool' },
+                    { word: 'Vinho', hint: 'uva' },
+                    { word: 'Água', hint: 'líquido' },
+                    { word: 'Azeite', hint: 'óleo' },
+                    { word: 'Molho', hint: 'tempero' },
+                    { word: 'Doce', hint: 'açúcar' }
                 ]
             },
 
             objetos: {
                 name: 'Objetos 📦',
                 emoji: '📦',
-                words: [{
-                        word: 'Cadeira',
-                        hint: 'sentar'
-                    },
-                    {
-                        word: 'Mesa',
-                        hint: 'tampo'
-                    },
-                    {
-                        word: 'Cama',
-                        hint: 'dormir'
-                    },
-                    {
-                        word: 'Guarda-roupa',
-                        hint: 'roupa'
-                    },
-                    {
-                        word: 'Sofá',
-                        hint: 'conforto'
-                    },
-                    {
-                        word: 'Tapete',
-                        hint: 'chão'
-                    },
-                    {
-                        word: 'Espelho',
-                        hint: 'reflexo'
-                    },
-                    {
-                        word: 'Lâmpada',
-                        hint: 'luz'
-                    },
-                    {
-                        word: 'Relógio',
-                        hint: 'tempo'
-                    },
-                    {
-                        word: 'Telefone',
-                        hint: 'ligação'
-                    },
-                    {
-                        word: 'Computador',
-                        hint: 'máquina'
-                    },
-                    {
-                        word: 'Mouse',
-                        hint: 'cursor'
-                    },
-                    {
-                        word: 'Teclado',
-                        hint: 'letras'
-                    },
-                    {
-                        word: 'Pneu',
-                        hint: 'roda'
-                    },
-                    {
-                        word: 'Carro',
-                        hint: 'veículo'
-                    },
-                    {
-                        word: 'Bicicleta',
-                        hint: 'pedal'
-                    },
-                    {
-                        word: 'Moto',
-                        hint: 'motor'
-                    },
-                    {
-                        word: 'Ônibus',
-                        hint: 'transporte'
-                    },
-                    {
-                        word: 'Trem',
-                        hint: 'trilho'
-                    },
-                    {
-                        word: 'Avião',
-                        hint: 'voo'
-                    },
-                    {
-                        word: 'Livro',
-                        hint: 'leitura'
-                    },
-                    {
-                        word: 'Jornal',
-                        hint: 'notícia'
-                    },
-                    {
-                        word: 'Revista',
-                        hint: 'edição'
-                    },
-                    {
-                        word: 'Caderno',
-                        hint: 'anotar'
-                    },
-                    {
-                        word: 'Lápis',
-                        hint: 'grafite'
-                    },
-                    {
-                        word: 'Caneta',
-                        hint: 'tinta'
-                    },
-                    {
-                        word: 'Borracha',
-                        hint: 'apagar'
-                    },
-                    {
-                        word: 'Tesoura',
-                        hint: 'corte'
-                    },
-                    {
-                        word: 'Faca',
-                        hint: 'corte'
-                    },
-                    {
-                        word: 'Garfo',
-                        hint: 'dentes'
-                    },
-                    {
-                        word: 'Colher',
-                        hint: 'servir'
-                    },
-                    {
-                        word: 'Prato',
-                        hint: 'comida'
-                    },
-                    {
-                        word: 'Copo',
-                        hint: 'bebida'
-                    },
-                    {
-                        word: 'Panela',
-                        hint: 'cozinhar'
-                    },
-                    {
-                        word: 'Fogão',
-                        hint: 'calor'
-                    },
-                    {
-                        word: 'Geladeira',
-                        hint: 'frio'
-                    },
-                    {
-                        word: 'Forno',
-                        hint: 'assar'
-                    },
-                    {
-                        word: 'Televisão',
-                        hint: 'vídeo'
-                    },
-                    {
-                        word: 'Rádio',
-                        hint: 'som'
-                    },
-                    {
-                        word: 'Câmera',
-                        hint: 'foto'
-                    },
-                    {
-                        word: 'Chave',
-                        hint: 'abrir'
-                    },
-                    {
-                        word: 'Cadeado',
-                        hint: 'travar'
-                    },
-                    {
-                        word: 'Porta',
-                        hint: 'entrada'
-                    },
-                    {
-                        word: 'Janela',
-                        hint: 'luz'
-                    },
-                    {
-                        word: 'Escada',
-                        hint: 'subir'
-                    },
-                    {
-                        word: 'Cerca',
-                        hint: 'limite'
-                    },
-                    {
-                        word: 'Parede',
-                        hint: 'divisão'
-                    },
-                    {
-                        word: 'Teto',
-                        hint: 'cobertura'
-                    },
-                    {
-                        word: 'Piso',
-                        hint: 'chão'
-                    }
+                questions: [
+                    'Qual é seu objeto favorito?',
+                    'Qual é o objeto que você mais usa no dia a dia?',
+                    'Qual objeto você não sairia de casa sem levar?',
+                    'Qual é o objeto mais importante da sua casa?',
+                    'Qual objeto você usou hoje?',
+                    'Qual é o objeto que mais durou com você?',
+                    'Qual objeto você gostaria de ter?',
+                    'Qual objeto você usa para dormir?',
+                    'Qual é seu objeto de trabalho favorito?',
+                    'Qual objeto te ajuda a relaxar?',
+                    'Qual é o objeto que você limparia primeiro em uma enchente?',
+                    'Qual objeto você não conseguiria viver sem?',
+                    'Qual é o objeto que você mais perde?',
+                    'Qual objeto você reganharia se perdesse?',
+                    'Qual é o objeto que mais atrapalha sua casa?',
+                    'Qual é o objeto que você mais procura?',
+                    'Qual objeto você gostaria de ter em ouro?',
+                    'Qual é o objeto que você carrega na bolsa/mochila?',
+                    'Qual é o objeto que você gostaria de herdar?',
+                    'Qual objeto define você?'
+                ],
+                words: [
+                    { word: 'Cadeira', hint: 'sentar' },
+                    { word: 'Mesa', hint: 'tampo' },
+                    { word: 'Cama', hint: 'dormir' },
+                    { word: 'Guarda-roupa', hint: 'roupa' },
+                    { word: 'Sofá', hint: 'conforto' },
+                    { word: 'Tapete', hint: 'chão' },
+                    { word: 'Espelho', hint: 'reflexo' },
+                    { word: 'Lâmpada', hint: 'luz' },
+                    { word: 'Relógio', hint: 'tempo' },
+                    { word: 'Telefone', hint: 'ligação' },
+                    { word: 'Computador', hint: 'máquina' },
+                    { word: 'Mouse', hint: 'cursor' },
+                    { word: 'Teclado', hint: 'letras' },
+                    { word: 'Pneu', hint: 'roda' },
+                    { word: 'Carro', hint: 'veículo' },
+                    { word: 'Bicicleta', hint: 'pedal' },
+                    { word: 'Moto', hint: 'motor' },
+                    { word: 'Ônibus', hint: 'transporte' },
+                    { word: 'Trem', hint: 'trilho' },
+                    { word: 'Avião', hint: 'voo' },
+                    { word: 'Livro', hint: 'leitura' },
+                    { word: 'Jornal', hint: 'notícia' },
+                    { word: 'Revista', hint: 'edição' },
+                    { word: 'Caderno', hint: 'anotar' },
+                    { word: 'Lápis', hint: 'grafite' },
+                    { word: 'Caneta', hint: 'tinta' },
+                    { word: 'Borracha', hint: 'apagar' },
+                    { word: 'Tesoura', hint: 'corte' },
+                    { word: 'Faca', hint: 'corte' },
+                    { word: 'Garfo', hint: 'dentes' },
+                    { word: 'Colher', hint: 'servir' },
+                    { word: 'Prato', hint: 'comida' },
+                    { word: 'Copo', hint: 'bebida' },
+                    { word: 'Panela', hint: 'cozinhar' },
+                    { word: 'Fogão', hint: 'calor' },
+                    { word: 'Geladeira', hint: 'frio' },
+                    { word: 'Forno', hint: 'assar' },
+                    { word: 'Televisão', hint: 'vídeo' },
+                    { word: 'Rádio', hint: 'som' },
+                    { word: 'Câmera', hint: 'foto' },
+                    { word: 'Chave', hint: 'abrir' },
+                    { word: 'Cadeado', hint: 'travar' },
+                    { word: 'Porta', hint: 'entrada' },
+                    { word: 'Janela', hint: 'luz' },
+                    { word: 'Escada', hint: 'subir' },
+                    { word: 'Cerca', hint: 'limite' },
+                    { word: 'Parede', hint: 'divisão' },
+                    { word: 'Teto', hint: 'cobertura' },
+                    { word: 'Piso', hint: 'chão' }
                 ]
             },
 
             famosos: {
                 name: 'Celebridades 🌟',
                 emoji: '🌟',
-                words: [{
-                        word: 'Cristiano Ronaldo',
-                        hint: 'futebol'
-                    },
-                    {
-                        word: 'Lionel Messi',
-                        hint: 'futebol'
-                    },
-                    {
-                        word: 'Neymar',
-                        hint: 'futebol'
-                    },
-                    {
-                        word: 'Tom Cruise',
-                        hint: 'ação'
-                    },
-                    {
-                        word: 'Johnny Depp',
-                        hint: 'ator'
-                    },
-                    {
-                        word: 'Leonardo DiCaprio',
-                        hint: 'Titanic'
-                    },
-                    {
-                        word: 'Brad Pitt',
-                        hint: 'ator'
-                    },
-                    {
-                        word: 'Will Smith',
-                        hint: 'ator'
-                    },
-                    {
-                        word: 'Nicolas Cage',
-                        hint: 'ator'
-                    },
-                    {
-                        word: 'Arnold Schwarzenegger',
-                        hint: 'ator'
-                    },
-                    {
-                        word: 'Sylvester Stallone',
-                        hint: 'Rocky'
-                    },
-                    {
-                        word: 'Jean-Claude Van Damme',
-                        hint: 'luta'
-                    },
-                    {
-                        word: 'Bruce Willis',
-                        hint: 'ação'
-                    },
-                    {
-                        word: 'Jackie Chan',
-                        hint: 'luta'
-                    },
-                    {
-                        word: 'Keanu Reeves',
-                        hint: 'Matrix'
-                    },
-                    {
-                        word: 'Tom Hanks',
-                        hint: 'drama'
-                    },
-                    {
-                        word: 'Steven Spielberg',
-                        hint: 'diretor'
-                    },
-                    {
-                        word: 'Quentin Tarantino',
-                        hint: 'violência'
-                    },
-                    {
-                        word: 'Meryl Streep',
-                        hint: 'atriz'
-                    },
-                    {
-                        word: 'Julia Roberts',
-                        hint: 'atriz'
-                    },
-                    {
-                        word: 'Angelina Jolie',
-                        hint: 'atriz'
-                    },
-                    {
-                        word: 'Lady Gaga',
-                        hint: 'cantora'
-                    },
-                    {
-                        word: 'Taylor Swift',
-                        hint: 'pop'
-                    },
-                    {
-                        word: 'Beyoncé',
-                        hint: 'cantora'
-                    },
-                    {
-                        word: 'Shakira',
-                        hint: 'cantora'
-                    },
-                    {
-                        word: 'Rihanna',
-                        hint: 'cantora'
-                    },
-                    {
-                        word: 'Ariana Grande',
-                        hint: 'pop'
-                    },
-                    {
-                        word: 'The Weeknd',
-                        hint: 'cantor'
-                    },
-                    {
-                        word: 'Ed Sheeran',
-                        hint: 'cantor'
-                    },
-                    {
-                        word: 'Justin Bieber',
-                        hint: 'cantor'
-                    },
-                    {
-                        word: 'Drake',
-                        hint: 'rapper'
-                    },
-                    {
-                        word: 'Eminem',
-                        hint: 'rapper'
-                    },
-                    {
-                        word: 'Kanye West',
-                        hint: 'rapper'
-                    },
-                    {
-                        word: 'Jay-Z',
-                        hint: 'rapper'
-                    },
-                    {
-                        word: 'Tupac',
-                        hint: 'rapper'
-                    },
-                    {
-                        word: 'Elon Musk',
-                        hint: 'tecnologia'
-                    },
-                    {
-                        word: 'Bill Gates',
-                        hint: 'Microsoft'
-                    },
-                    {
-                        word: 'Steve Jobs',
-                        hint: 'Apple'
-                    },
-                    {
-                        word: 'Oprah Winfrey',
-                        hint: 'tv'
-                    },
-                    {
-                        word: 'Ellen DeGeneres',
-                        hint: 'tv'
-                    },
-                    {
-                        word: 'Jimmy Fallon',
-                        hint: 'tv'
-                    },
-                    {
-                        word: 'David Letterman',
-                        hint: 'tv'
-                    },
-                    {
-                        word: 'Pelé',
-                        hint: 'futebol'
-                    },
-                    {
-                        word: 'Maradona',
-                        hint: 'futebol'
-                    },
-                    {
-                        word: 'Zinedine Zidane',
-                        hint: 'futebol'
-                    },
-                    {
-                        word: 'Ronaldinho',
-                        hint: 'futebol'
-                    },
-                    {
-                        word: 'Ronaldo',
-                        hint: 'futebol'
-                    },
-                    {
-                        word: 'Gisele Bündchen',
-                        hint: 'modelo'
-                    },
-                    {
-                        word: 'Naomi Campbell',
-                        hint: 'modelo'
-                    }
+                questions: [
+                    'Qual famoso você mais admira?',
+                    'Qual ator seu gostaria de assistir sempre?',
+                    'Qual cantor você mais ouve?',
+                    'Qual famoso você gostaria de conhecer?',
+                    'Qual é o famoso mais parecido com você?',
+                    'Qual famoso você seguiria em uma rede social?',
+                    'Qual é seu filme favorito de qual famoso?',
+                    'Qual famoso você gostaria de ser por um dia?',
+                    'Qual é a música favorita de qual famoso?',
+                    'Qual famoso você convidaria para jantar?',
+                    'Qual é o famoso que você menos gosta?',
+                    'Qual famoso você defende em discussões?',
+                    'Qual famoso você acha que envelheceu bem?',
+                    'Qual famoso você gostaria de entrevistar?',
+                    'Qual é o casal de famosos que você mais gosta?',
+                    'Qual famoso você acharia chato de conhecer pessoalmente?',
+                    'Qual famoso você gostaria que interpretasse você em um filme?',
+                    'Qual é o famoso que você mais segue nas notícias?',
+                    'Qual famoso você gostaria de ter como amigo?',
+                    'Qual é o famoso que você gostaria de trocar de vida?'
+                ],
+                words: [
+                    { word: 'Cristiano Ronaldo', hint: 'futebol' },
+                    { word: 'Lionel Messi', hint: 'futebol' },
+                    { word: 'Neymar', hint: 'futebol' },
+                    { word: 'Tom Cruise', hint: 'ação' },
+                    { word: 'Johnny Depp', hint: 'ator' },
+                    { word: 'Leonardo DiCaprio', hint: 'Titanic' },
+                    { word: 'Brad Pitt', hint: 'ator' },
+                    { word: 'Will Smith', hint: 'ator' },
+                    { word: 'Nicolas Cage', hint: 'ator' },
+                    { word: 'Arnold Schwarzenegger', hint: 'ator' },
+                    { word: 'Sylvester Stallone', hint: 'Rocky' },
+                    { word: 'Jean-Claude Van Damme', hint: 'luta' },
+                    { word: 'Bruce Willis', hint: 'ação' },
+                    { word: 'Jackie Chan', hint: 'luta' },
+                    { word: 'Keanu Reeves', hint: 'Matrix' },
+                    { word: 'Tom Hanks', hint: 'drama' },
+                    { word: 'Steven Spielberg', hint: 'diretor' },
+                    { word: 'Quentin Tarantino', hint: 'violência' },
+                    { word: 'Meryl Streep', hint: 'atriz' },
+                    { word: 'Julia Roberts', hint: 'atriz' },
+                    { word: 'Angelina Jolie', hint: 'atriz' },
+                    { word: 'Lady Gaga', hint: 'cantora' },
+                    { word: 'Taylor Swift', hint: 'pop' },
+                    { word: 'Beyoncé', hint: 'cantora' },
+                    { word: 'Shakira', hint: 'cantora' },
+                    { word: 'Rihanna', hint: 'cantora' },
+                    { word: 'Ariana Grande', hint: 'pop' },
+                    { word: 'The Weeknd', hint: 'cantor' },
+                    { word: 'Ed Sheeran', hint: 'cantor' },
+                    { word: 'Justin Bieber', hint: 'cantor' },
+                    { word: 'Drake', hint: 'rapper' },
+                    { word: 'Eminem', hint: 'rapper' },
+                    { word: 'Kanye West', hint: 'rapper' },
+                    { word: 'Jay-Z', hint: 'rapper' },
+                    { word: 'Tupac', hint: 'rapper' },
+                    { word: 'Elon Musk', hint: 'tecnologia' },
+                    { word: 'Bill Gates', hint: 'Microsoft' },
+                    { word: 'Steve Jobs', hint: 'Apple' },
+                    { word: 'Oprah Winfrey', hint: 'tv' },
+                    { word: 'Ellen DeGeneres', hint: 'tv' },
+                    { word: 'Jimmy Fallon', hint: 'tv' },
+                    { word: 'David Letterman', hint: 'tv' },
+                    { word: 'Pelé', hint: 'futebol' },
+                    { word: 'Maradona', hint: 'futebol' },
+                    { word: 'Zinedine Zidane', hint: 'futebol' },
+                    { word: 'Ronaldinho', hint: 'futebol' },
+                    { word: 'Ronaldo', hint: 'futebol' },
+                    { word: 'Gisele Bündchen', hint: 'modelo' },
+                    { word: 'Naomi Campbell', hint: 'modelo' }
                 ]
             },
 
             animais: {
                 name: 'Animais 🐾',
                 emoji: '🐾',
-                words: [{
-                        word: 'Leão',
-                        hint: 'felino'
-                    },
-                    {
-                        word: 'Tigre',
-                        hint: 'listras'
-                    },
-                    {
-                        word: 'Elefante',
-                        hint: 'tromba'
-                    },
-                    {
-                        word: 'Girafa',
-                        hint: 'pescoço'
-                    },
-                    {
-                        word: 'Zebra',
-                        hint: 'listras'
-                    },
-                    {
-                        word: 'Hiena',
-                        hint: 'risada'
-                    },
-                    {
-                        word: 'Antílope',
-                        hint: 'chifre'
-                    },
-                    {
-                        word: 'Búfalo',
-                        hint: 'chifre'
-                    },
-                    {
-                        word: 'Avestruz',
-                        hint: 'corrida'
-                    },
-                    {
-                        word: 'Flamingo',
-                        hint: 'rosa'
-                    },
-                    {
-                        word: 'Águia',
-                        hint: 'voo'
-                    },
-                    {
-                        word: 'Coruja',
-                        hint: 'noite'
-                    },
-                    {
-                        word: 'Pinguim',
-                        hint: 'gelo'
-                    },
-                    {
-                        word: 'Papagaio',
-                        hint: 'fala'
-                    },
-                    {
-                        word: 'Abelha',
-                        hint: 'mel'
-                    },
-                    {
-                        word: 'Borboleta',
-                        hint: 'asas'
-                    },
-                    {
-                        word: 'Aranha',
-                        hint: 'teia'
-                    },
-                    {
-                        word: 'Escorpião',
-                        hint: 'veneno'
-                    },
-                    {
-                        word: 'Barata',
-                        hint: 'praga'
-                    },
-                    {
-                        word: 'Gafanhoto',
-                        hint: 'salto'
-                    },
-                    {
-                        word: 'Formiga',
-                        hint: 'colônia'
-                    },
-                    {
-                        word: 'Grilo',
-                        hint: 'som'
-                    },
-                    {
-                        word: 'Louva-a-deus',
-                        hint: 'predador'
-                    },
-                    {
-                        word: 'Sapo',
-                        hint: 'coaxo'
-                    },
-                    {
-                        word: 'Rã',
-                        hint: 'salto'
-                    },
-                    {
-                        word: 'Cobra',
-                        hint: 'veneno'
-                    },
-                    {
-                        word: 'Jacaré',
-                        hint: 'dentes'
-                    },
-                    {
-                        word: 'Tartaruga',
-                        hint: 'casco'
-                    },
-                    {
-                        word: 'Lagarto',
-                        hint: 'cauda'
-                    },
-                    {
-                        word: 'Tubarão',
-                        hint: 'predador'
-                    },
-                    {
-                        word: 'Golfinho',
-                        hint: 'inteligente'
-                    },
-                    {
-                        word: 'Baleia',
-                        hint: 'gigante'
-                    },
-                    {
-                        word: 'Peixe-palhaço',
-                        hint: 'coral'
-                    },
-                    {
-                        word: 'Polvo',
-                        hint: 'tentáculos'
-                    },
-                    {
-                        word: 'Lula',
-                        hint: 'mar'
-                    },
-                    {
-                        word: 'Caranguejo',
-                        hint: 'lateral'
-                    },
-                    {
-                        word: 'Lagosta',
-                        hint: 'pinça'
-                    },
-                    {
-                        word: 'Camarão',
-                        hint: 'pequeno'
-                    },
-                    {
-                        word: 'Cachorro',
-                        hint: 'amigo'
-                    },
-                    {
-                        word: 'Gato',
-                        hint: 'independente'
-                    },
-                    {
-                        word: 'Cavalo',
-                        hint: 'corrida'
-                    },
-                    {
-                        word: 'Vaca',
-                        hint: 'leite'
-                    },
-                    {
-                        word: 'Porco',
-                        hint: 'lama'
-                    },
-                    {
-                        word: 'Galinha',
-                        hint: 'ovo'
-                    },
-                    {
-                        word: 'Pato',
-                        hint: 'água'
-                    },
-                    {
-                        word: 'Ganso',
-                        hint: 'ave'
-                    },
-                    {
-                        word: 'Ovelha',
-                        hint: 'lã'
-                    },
-                    {
-                        word: 'Cabra',
-                        hint: 'chifre'
-                    },
-                    {
-                        word: 'Mula',
-                        hint: 'híbrido'
-                    }
+                questions: [
+                    'Qual é seu animal favorito?',
+                    'Qual animal você gostaria de ter como pet?',
+                    'Qual animal você mais respeita?',
+                    'Qual animal você menos gosta?',
+                    'Qual animal você acha mais bonito?',
+                    'Qual animal você gostaria de ser?',
+                    'Qual animal você acha mais inteligente?',
+                    'Qual animal você teria medo de encontrar?',
+                    'Qual animal você acha mais fofo?',
+                    'Qual animal você vê com frequência?',
+                    'Qual animal você gostaria de ver no zoológico?',
+                    'Qual animal representa você?',
+                    'Qual animal você acha mais forte?',
+                    'Qual animal você acha mais rápido?',
+                    'Qual animal você teria como mascote da sua casa?',
+                    'Qual animal você gostaria de domesticar?',
+                    'Qual animal você acha mais exótico?',
+                    'Qual animal você defende na natureza?',
+                    'Qual animal você acha mais divertido?',
+                    'Qual animal você gostaria de aprender a se mover como?'
+                ],
+                words: [
+                    { word: 'Leão', hint: 'felino' },
+                    { word: 'Tigre', hint: 'listras' },
+                    { word: 'Elefante', hint: 'tromba' },
+                    { word: 'Girafa', hint: 'pescoço' },
+                    { word: 'Zebra', hint: 'listras' },
+                    { word: 'Hiena', hint: 'risada' },
+                    { word: 'Antílope', hint: 'chifre' },
+                    { word: 'Búfalo', hint: 'chifre' },
+                    { word: 'Avestruz', hint: 'corrida' },
+                    { word: 'Flamingo', hint: 'rosa' },
+                    { word: 'Águia', hint: 'voo' },
+                    { word: 'Coruja', hint: 'noite' },
+                    { word: 'Pinguim', hint: 'gelo' },
+                    { word: 'Papagaio', hint: 'fala' },
+                    { word: 'Abelha', hint: 'mel' },
+                    { word: 'Borboleta', hint: 'asas' },
+                    { word: 'Aranha', hint: 'teia' },
+                    { word: 'Escorpião', hint: 'veneno' },
+                    { word: 'Barata', hint: 'praga' },
+                    { word: 'Gafanhoto', hint: 'salto' },
+                    { word: 'Formiga', hint: 'colônia' },
+                    { word: 'Grilo', hint: 'som' },
+                    { word: 'Louva-a-deus', hint: 'predador' },
+                    { word: 'Sapo', hint: 'coaxo' },
+                    { word: 'Rã', hint: 'salto' },
+                    { word: 'Cobra', hint: 'veneno' },
+                    { word: 'Jacaré', hint: 'dentes' },
+                    { word: 'Tartaruga', hint: 'casco' },
+                    { word: 'Lagarto', hint: 'cauda' },
+                    { word: 'Tubarão', hint: 'predador' },
+                    { word: 'Golfinho', hint: 'inteligente' },
+                    { word: 'Baleia', hint: 'gigante' },
+                    { word: 'Peixe-palhaço', hint: 'coral' },
+                    { word: 'Polvo', hint: 'tentáculos' },
+                    { word: 'Lula', hint: 'mar' },
+                    { word: 'Caranguejo', hint: 'lateral' },
+                    { word: 'Lagosta', hint: 'pinça' },
+                    { word: 'Camarão', hint: 'pequeno' },
+                    { word: 'Cachorro', hint: 'amigo' },
+                    { word: 'Gato', hint: 'independente' },
+                    { word: 'Cavalo', hint: 'corrida' },
+                    { word: 'Vaca', hint: 'leite' },
+                    { word: 'Porco', hint: 'lama' },
+                    { word: 'Galinha', hint: 'ovo' },
+                    { word: 'Pato', hint: 'água' },
+                    { word: 'Ganso', hint: 'ave' },
+                    { word: 'Ovelha', hint: 'lã' },
+                    { word: 'Cabra', hint: 'chifre' },
+                    { word: 'Mula', hint: 'híbrido' }
                 ]
             },
 
             filmes: {
                 name: 'Filmes 🎬',
                 emoji: '🎬',
-                words: [{
-                        word: 'Avatar',
-                        hint: 'azul'
-                    },
-                    {
-                        word: 'Titanic',
-                        hint: 'navio'
-                    },
-                    {
-                        word: 'Jurassic Park',
-                        hint: 'dinossauro'
-                    },
-                    {
-                        word: 'Matrix',
-                        hint: 'simulação'
-                    },
-                    {
-                        word: 'Star Wars',
-                        hint: 'espaço'
-                    },
-                    {
-                        word: 'Harry Potter',
-                        hint: 'magia'
-                    },
-                    {
-                        word: 'Vingadores',
-                        hint: 'heróis'
-                    },
-                    {
-                        word: 'Homem de Ferro',
-                        hint: 'armadura'
-                    },
-                    {
-                        word: 'Capitão América',
-                        hint: 'escudo'
-                    },
-                    {
-                        word: 'Thor',
-                        hint: 'martelo'
-                    },
-                    {
-                        word: 'Homem-Aranha',
-                        hint: 'teia'
-                    },
-                    {
-                        word: 'Pantera Negra',
-                        hint: 'Wakanda'
-                    },
-                    {
-                        word: 'Homem-Formiga',
-                        hint: 'tamanho'
-                    },
-                    {
-                        word: 'Doutor Estranho',
-                        hint: 'magia'
-                    },
-                    {
-                        word: 'Gavião Arqueiro',
-                        hint: 'arco'
-                    },
-                    {
-                        word: 'Viúva Negra',
-                        hint: 'espiã'
-                    },
-                    {
-                        word: 'Batman',
-                        hint: 'morcego'
-                    },
-                    {
-                        word: 'Superman',
-                        hint: 'Krypton'
-                    },
-                    {
-                        word: 'Mulher Maravilha',
-                        hint: 'amazona'
-                    },
-                    {
-                        word: 'Homem de Ouro',
-                        hint: '007'
-                    },
-                    {
-                        word: 'Senhor dos Anéis',
-                        hint: 'anel'
-                    },
-                    {
-                        word: 'Hobbit',
-                        hint: 'fantasia'
-                    },
-                    {
-                        word: 'Piratas do Caribe',
-                        hint: 'pirata'
-                    },
-                    {
-                        word: 'Homem de Ferro 3',
-                        hint: 'armadura'
-                    },
-                    {
-                        word: 'Duro de Matar',
-                        hint: 'ação'
-                    },
-                    {
-                        word: 'Missão Impossível',
-                        hint: 'missão'
-                    },
-                    {
-                        word: 'Gladiador',
-                        hint: 'Roma'
-                    },
-                    {
-                        word: 'Braveheart',
-                        hint: 'guerra'
-                    },
-                    {
-                        word: 'Salve o Soldado Ryan',
-                        hint: 'guerra'
-                    },
-                    {
-                        word: 'A Lista de Schindler',
-                        hint: 'holocausto'
-                    },
-                    {
-                        word: 'Forrest Gump',
-                        hint: 'vida'
-                    },
-                    {
-                        word: 'Pulp Fiction',
-                        hint: 'crime'
-                    },
-                    {
-                        word: 'Clube da Luta',
-                        hint: 'luta'
-                    },
-                    {
-                        word: 'Cidade de Deus',
-                        hint: 'favela'
-                    },
-                    {
-                        word: 'Central do Brasil',
-                        hint: 'viagem'
-                    },
-                    {
-                        word: 'Cidade de Deus',
-                        hint: 'violência'
-                    },
-                    {
-                        word: 'Tropa de Elite',
-                        hint: 'polícia'
-                    },
-                    {
-                        word: 'Se eu Fosse Você',
-                        hint: 'troca'
-                    },
-                    {
-                        word: 'Eu Sou Lenda',
-                        hint: 'vírus'
-                    },
-                    {
-                        word: 'Interestelar',
-                        hint: 'espaço'
-                    },
-                    {
-                        word: 'Inception',
-                        hint: 'sonho'
-                    },
-                    {
-                        word: 'O Iluminado',
-                        hint: 'hotel'
-                    },
-                    {
-                        word: 'Psicose',
-                        hint: 'terror'
-                    },
-                    {
-                        word: 'Silêncio dos Inocentes',
-                        hint: 'serial'
-                    },
-                    {
-                        word: 'Garota de Ouro',
-                        hint: 'boxe'
-                    },
-                    {
-                        word: 'Rocky',
-                        hint: 'boxe'
-                    },
-                    {
-                        word: 'Rambó',
-                        hint: 'guerra'
-                    },
-                    {
-                        word: 'Predador',
-                        hint: 'alien'
-                    },
-                    {
-                        word: 'Alien',
-                        hint: 'xenomorfo'
-                    }
+                questions: [
+                    'Qual é seu filme favorito?',
+                    'Qual filme você assiste várias vezes?',
+                    'Qual filme te fez chorar?',
+                    'Qual é o filme mais recente que você assistiu?',
+                    'Qual filme você recomenda para todos?',
+                    'Qual é o filme que mais marcou você?',
+                    'Qual filme você gostaria de reviver?',
+                    'Qual é o seu gênero de filme favorito?',
+                    'Qual filme você assiste na chuva?',
+                    'Qual filme te dá vontade de viajar?',
+                    'Qual é a cena de filme que mais te marcou?',
+                    'Qual filme você quer que façam um remake?',
+                    'Qual é o filme que você odeia que todos gostam?',
+                    'Qual filme você gostaria que fosse real?',
+                    'Qual é o filme que você levaria para uma ilha deserta?',
+                    'Qual filme você gostaria de viver?',
+                    'Qual é o filme que mais faz você rir?',
+                    'Qual filme você gostaria de ter feito?',
+                    'Qual é o filme que você mostraria para alguém descobrir cinema?',
+                    'Qual filme você assiste quando quer relaxar?'
+                ],
+                words: [
+                    { word: 'Avatar', hint: 'azul' },
+                    { word: 'Titanic', hint: 'navio' },
+                    { word: 'Jurassic Park', hint: 'dinossauro' },
+                    { word: 'Matrix', hint: 'simulação' },
+                    { word: 'Star Wars', hint: 'espaço' },
+                    { word: 'Harry Potter', hint: 'magia' },
+                    { word: 'Vingadores', hint: 'heróis' },
+                    { word: 'Homem de Ferro', hint: 'armadura' },
+                    { word: 'Capitão América', hint: 'escudo' },
+                    { word: 'Thor', hint: 'martelo' },
+                    { word: 'Homem-Aranha', hint: 'teia' },
+                    { word: 'Pantera Negra', hint: 'Wakanda' },
+                    { word: 'Homem-Formiga', hint: 'tamanho' },
+                    { word: 'Doutor Estranho', hint: 'magia' },
+                    { word: 'Gavião Arqueiro', hint: 'arco' },
+                    { word: 'Viúva Negra', hint: 'espiã' },
+                    { word: 'Batman', hint: 'morcego' },
+                    { word: 'Superman', hint: 'Krypton' },
+                    { word: 'Mulher Maravilha', hint: 'amazona' },
+                    { word: 'Homem de Ouro', hint: '007' },
+                    { word: 'Senhor dos Anéis', hint: 'anel' },
+                    { word: 'Hobbit', hint: 'fantasia' },
+                    { word: 'Piratas do Caribe', hint: 'pirata' },
+                    { word: 'Homem de Ferro 3', hint: 'armadura' },
+                    { word: 'Duro de Matar', hint: 'ação' },
+                    { word: 'Missão Impossível', hint: 'missão' },
+                    { word: 'Gladiador', hint: 'Roma' },
+                    { word: 'Braveheart', hint: 'guerra' },
+                    { word: 'Salve o Soldado Ryan', hint: 'guerra' },
+                    { word: 'A Lista de Schindler', hint: 'holocausto' },
+                    { word: 'Forrest Gump', hint: 'vida' },
+                    { word: 'Pulp Fiction', hint: 'crime' },
+                    { word: 'Clube da Luta', hint: 'luta' },
+                    { word: 'Cidade de Deus', hint: 'favela' },
+                    { word: 'Central do Brasil', hint: 'viagem' },
+                    { word: 'Tropa de Elite', hint: 'polícia' },
+                    { word: 'Se eu Fosse Você', hint: 'troca' },
+                    { word: 'Eu Sou Lenda', hint: 'vírus' },
+                    { word: 'Interestelar', hint: 'espaço' },
+                    { word: 'Inception', hint: 'sonho' },
+                    { word: 'O Iluminado', hint: 'hotel' },
+                    { word: 'Psicose', hint: 'terror' },
+                    { word: 'Silêncio dos Inocentes', hint: 'serial' },
+                    { word: 'Garota de Ouro', hint: 'boxe' },
+                    { word: 'Rocky', hint: 'boxe' },
+                    { word: 'Rambó', hint: 'guerra' },
+                    { word: 'Predador', hint: 'alien' },
+                    { word: 'Alien', hint: 'xenomorfo' }
                 ]
             }
         };
@@ -1977,7 +1359,8 @@
             round: 0,
             revealedPlayers: {},
             selectedForElimination: null,
-            playerWords: {}
+            playerWords: {},
+            usedQuestions: []
         };
 
         // Navigation
@@ -2006,8 +1389,7 @@
             gameState.selectedMode = mode;
             document.querySelector(`input[value="${mode}"]`).checked = true;
             document.querySelectorAll('.radio-option').forEach((opt, idx) => {
-                opt.classList.toggle('active', (idx === 0 && mode === 'blind') || (idx === 1 && mode ===
-                    'aware'));
+                opt.classList.toggle('active', (idx === 0 && mode === 'blind') || (idx === 1 && mode === 'aware') || (idx === 2 && mode === 'question'));
             });
         }
 
@@ -2102,6 +1484,11 @@
             return ids.slice(0, Math.min(count, ids.length));
         }
 
+        function getRandomQuestion(themeData) {
+            const questions = themeData.questions;
+            return questions[Math.floor(Math.random() * questions.length)];
+        }
+
         function startGame() {
             if (gameState.players.length < 2) {
                 alert('Mínimo 2 jogadores necessário!');
@@ -2124,41 +1511,64 @@
             gameState.revealedPlayers = {};
             gameState.selectedForElimination = null;
             gameState.playerWords = {};
+            gameState.usedQuestions = [];
 
-            // Assign words
-            const mainWordObj = themeData.words[Math.floor(Math.random() * themeData.words.length)];
-            gameState.word = mainWordObj.word;
-
-            gameState.players.forEach(player => {
-                if (player.isImpostor) {
-                    if (gameState.selectedMode === 'blind') {
-                        // Modo Cego: impostor recebe uma palavra diferente aleatória
-                        const differentWords = themeData.words.filter(w => w.word !== mainWordObj.word);
-                        const differentWord = differentWords[Math.floor(Math.random() * differentWords.length)];
+            // Assign words ou perguntas
+            if (gameState.selectedMode === 'question') {
+                const mainQuestion = getRandomQuestion(themeData);
+                const impostorQuestion = getRandomQuestion(themeData);
+                
+                gameState.players.forEach(player => {
+                    if (player.isImpostor) {
                         gameState.playerWords[player.id] = {
-                            word: differentWord.word,
-                            hint: null,
+                            question: impostorQuestion,
+                            isQuestion: true,
                             isImpostor: true,
                             knowsImpostor: false
                         };
                     } else {
-                        // Modo Consciente: impostor recebe dica
                         gameState.playerWords[player.id] = {
-                            word: 'IMPOSTOR',
-                            hint: mainWordObj.hint,
-                            isImpostor: true,
-                            knowsImpostor: true
+                            question: mainQuestion,
+                            isQuestion: true,
+                            isImpostor: false,
+                            knowsImpostor: false
                         };
                     }
-                } else {
-                    gameState.playerWords[player.id] = {
-                        word: mainWordObj.word,
-                        hint: null,
-                        isImpostor: false,
-                        knowsImpostor: false
-                    };
-                }
-            });
+                });
+                gameState.usedQuestions.push(mainQuestion, impostorQuestion);
+            } else {
+                const mainWordObj = themeData.words[Math.floor(Math.random() * themeData.words.length)];
+                gameState.word = mainWordObj.word;
+
+                gameState.players.forEach(player => {
+                    if (player.isImpostor) {
+                        if (gameState.selectedMode === 'blind') {
+                            const differentWords = themeData.words.filter(w => w.word !== mainWordObj.word);
+                            const differentWord = differentWords[Math.floor(Math.random() * differentWords.length)];
+                            gameState.playerWords[player.id] = {
+                                word: differentWord.word,
+                                hint: null,
+                                isImpostor: true,
+                                knowsImpostor: false
+                            };
+                        } else {
+                            gameState.playerWords[player.id] = {
+                                word: 'IMPOSTOR',
+                                hint: mainWordObj.hint,
+                                isImpostor: true,
+                                knowsImpostor: true
+                            };
+                        }
+                    } else {
+                        gameState.playerWords[player.id] = {
+                            word: mainWordObj.word,
+                            hint: null,
+                            isImpostor: false,
+                            knowsImpostor: false
+                        };
+                    }
+                });
+            }
 
             renderGame();
             goToGame();
@@ -2173,7 +1583,6 @@
             const current = gameState.players[gameState.currentPlayerIndex];
             document.getElementById('nextPlayerName').textContent = current.name;
 
-            // Render players grid
             const grid = document.getElementById('playersGrid');
             grid.innerHTML = gameState.players.map((p, idx) => `
                 <div class="player-card ${idx === gameState.currentPlayerIndex ? 'active' : ''}" onclick="selectPlayer(${idx})">
@@ -2181,7 +1590,6 @@
                 </div>
             `).join('');
 
-            // Render voting grid
             const votingGrid = document.getElementById('votingGrid');
             votingGrid.innerHTML = gameState.players.map(p => `
                 <button class="vote-btn ${gameState.selectedForElimination === p.id ? 'selected' : ''}" onclick="selectForElimination(${p.id})">
@@ -2202,11 +1610,17 @@
             const playerInfo = gameState.playerWords[current.id];
 
             let content = `
-                <div class="reveal-label">PALAVRA SECRETA</div>
+                <div class="reveal-label">PERGUNTA / PALAVRA SECRETA</div>
                 <div class="player-name-display">${current.name}</div>
             `;
 
-            if (playerInfo.knowsImpostor) {
+            if (gameState.selectedMode === 'question') {
+                content += `
+                    <div class="reveal-content">
+                        <div class="question-display">"${playerInfo.question}"</div>
+                    </div>
+                `;
+            } else if (playerInfo.knowsImpostor) {
                 content += `
                     <div class="impostor-warning">🎭 VOCÊ É O IMPOSTOR!</div>
                     <div class="reveal-content">
@@ -2239,11 +1653,6 @@
 
         function selectForElimination(playerId) {
             gameState.selectedForElimination = gameState.selectedForElimination === playerId ? null : playerId;
-            renderGame();
-        }
-
-        function selectPlayer(idx) {
-            gameState.currentPlayerIndex = idx;
             renderGame();
         }
 
@@ -2295,7 +1704,6 @@
             if (confirm('Deseja reiniciar o jogo com os mesmos jogadores?')) {
                 const themeData = themes[gameState.selectedTheme];
 
-                // Embaralhar jogadores novamente e escolher impostores aleatoriamente
                 const playersCopy = shuffleArray(gameState.players.map(p => ({ ...p })));
                 const impostorIds = pickRandomIds(playersCopy, gameState.numImpostors);
 
@@ -2310,39 +1718,62 @@
                 gameState.revealedPlayers = {};
                 gameState.selectedForElimination = null;
                 gameState.playerWords = {};
+                gameState.usedQuestions = [];
 
-                // Assign new words
-                const mainWordObj = themeData.words[Math.floor(Math.random() * themeData.words.length)];
-                gameState.word = mainWordObj.word;
-
-                gameState.players.forEach(player => {
-                    if (player.isImpostor) {
-                        if (gameState.selectedMode === 'blind') {
-                            const differentWords = themeData.words.filter(w => w.word !== mainWordObj.word);
-                            const differentWord = differentWords[Math.floor(Math.random() * differentWords.length)];
+                if (gameState.selectedMode === 'question') {
+                    const mainQuestion = getRandomQuestion(themeData);
+                    const impostorQuestion = getRandomQuestion(themeData);
+                    
+                    gameState.players.forEach(player => {
+                        if (player.isImpostor) {
                             gameState.playerWords[player.id] = {
-                                word: differentWord.word,
-                                hint: null,
+                                question: impostorQuestion,
+                                isQuestion: true,
                                 isImpostor: true,
                                 knowsImpostor: false
                             };
                         } else {
                             gameState.playerWords[player.id] = {
-                                word: 'IMPOSTOR',
-                                hint: mainWordObj.hint,
-                                isImpostor: true,
-                                knowsImpostor: true
+                                question: mainQuestion,
+                                isQuestion: true,
+                                isImpostor: false,
+                                knowsImpostor: false
                             };
                         }
-                    } else {
-                        gameState.playerWords[player.id] = {
-                            word: mainWordObj.word,
-                            hint: null,
-                            isImpostor: false,
-                            knowsImpostor: false
-                        };
-                    }
-                });
+                    });
+                } else {
+                    const mainWordObj = themeData.words[Math.floor(Math.random() * themeData.words.length)];
+                    gameState.word = mainWordObj.word;
+
+                    gameState.players.forEach(player => {
+                        if (player.isImpostor) {
+                            if (gameState.selectedMode === 'blind') {
+                                const differentWords = themeData.words.filter(w => w.word !== mainWordObj.word);
+                                const differentWord = differentWords[Math.floor(Math.random() * differentWords.length)];
+                                gameState.playerWords[player.id] = {
+                                    word: differentWord.word,
+                                    hint: null,
+                                    isImpostor: true,
+                                    knowsImpostor: false
+                                };
+                            } else {
+                                gameState.playerWords[player.id] = {
+                                    word: 'IMPOSTOR',
+                                    hint: mainWordObj.hint,
+                                    isImpostor: true,
+                                    knowsImpostor: true
+                                };
+                            }
+                        } else {
+                            gameState.playerWords[player.id] = {
+                                word: mainWordObj.word,
+                                hint: null,
+                                isImpostor: false,
+                                knowsImpostor: false
+                            };
+                        }
+                    });
+                }
 
                 renderGame();
             }
