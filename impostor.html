@@ -945,6 +945,10 @@
 
                 <div class="voting-section">
                     <h3 class="section-title">Votação - Quem é o Impostor?</h3>
+                    <div id="correctQuestionSection" style="display: none; background: rgba(91,107,175,0.15); padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; border: 1px solid rgba(91,107,175,0.3);">
+                        <div style="color: #dbeafe; font-size: 0.875rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Pergunta Correta (da maioria):</div>
+                        <div style="font-size: 1.1rem; color: #e8a87c; font-weight: 600;">"<span id="correctQuestionDisplay"></span>"</div>
+                    </div>
                     <div class="voting-grid" id="votingGrid"></div>
 
                     <div class="action-buttons">
@@ -952,6 +956,10 @@
                         <button class="btn-action btn-eliminate" onclick="eliminatePlayer()">Eliminar</button>
                     </div>
                 </div>
+
+                <button id="revealQuestionBtn" class="btn-finish" onclick="revealCorrectQuestion()" style="display: none; margin-bottom: 1rem; background: #8b9fd4;">
+                    🔍 Revelar Pergunta Correta
+                </button>
 
                 <button class="btn-finish" onclick="finishRound()">Finalizar Rodada</button>
             </div>
@@ -968,10 +976,13 @@
                     'Qual é sua comida favorita?',
                     'O que você gosta de comer no café da manhã?',
                     'Qual é sua bebida preferida?',
+                    'Você prefere comida doce ou salgada?',
                     'Qual é sua sobremesa favorita?',
                     'O que você mais gosta de comer em um restaurante?',
                     'Qual fruta você mais gosta?',
+                    'Você prefere comida rápida ou caseira?',
                     'Qual é seu prato mais fácil de preparar?',
+                    'Você gosta mais de carne ou peixe?',
                     'Qual é seu tempero favorito?',
                     'Você come algo específico no final de semana?',
                     'Qual comida você nunca comeria?',
@@ -1597,7 +1608,29 @@
                 </button>
             `).join('');
 
+            // Mostrar botão de revelar pergunta se estiver em modo pergunta
+            const revealBtn = document.getElementById('revealQuestionBtn');
+            const correctQuestionSection = document.getElementById('correctQuestionSection');
+            if (gameState.selectedMode === 'question') {
+                revealBtn.style.display = 'block';
+                correctQuestionSection.style.display = 'none';
+            } else {
+                revealBtn.style.display = 'none';
+                correctQuestionSection.style.display = 'none';
+            }
+
             updateNextButton();
+        }
+
+        function revealCorrectQuestion() {
+            // Encontra a pergunta que a maioria dos jogadores recebeu (não-impostores)
+            const nonImpostors = gameState.players.filter(p => !p.isImpostor);
+            if (nonImpostors.length > 0) {
+                const correctQuestion = gameState.playerWords[nonImpostors[0].id].question;
+                document.getElementById('correctQuestionDisplay').textContent = correctQuestion;
+                document.getElementById('correctQuestionSection').style.display = 'block';
+                document.getElementById('revealQuestionBtn').style.display = 'none';
+            }
         }
 
         function selectPlayer(idx) {
