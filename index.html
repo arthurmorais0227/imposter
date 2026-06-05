@@ -113,6 +113,15 @@ body {
 select.input { cursor:pointer; }
 option { background:#1a1e2e; }
 
+.chat-bubble { max-width:85%; padding:0.5rem 0.75rem; border-radius:0.75rem; font-size:0.9rem; line-height:1.4; word-break:break-word; }
+.chat-bubble.mine { background:#D46475; color:#fff; align-self:flex-end; border-bottom-right-radius:0.2rem; }
+.chat-bubble.theirs { background:rgba(255,255,255,0.08); color:#e5e7eb; align-self:flex-start; border-bottom-left-radius:0.2rem; }
+.chat-name { font-size:0.7rem; color:#9ca3af; margin-bottom:2px; }
+.chat-name.mine { text-align:right; }
+.chat-wrap { display:flex; flex-direction:column; }
+.chat-wrap.mine { align-items:flex-end; }
+.chat-wrap.theirs { align-items:flex-start; }
+
 @media(max-width:480px){ .room-code{font-size:2rem;} .vote-grid{grid-template-columns:1fr 1fr;} }
 </style>
 </head>
@@ -300,6 +309,7 @@ option { background:#1a1e2e; }
       <div class="tab-bar">
         <div class="tab active" onclick="switchTab('vote')" id="tab-vote">🗳 Votação</div>
         <div class="tab" onclick="switchTab('players')" id="tab-players">👥 Jogadores</div>
+        <div class="tab" onclick="switchTab('chat')" id="tab-chat">💬 Chat</div>
       </div>
 
       <!-- Tab votação -->
@@ -334,6 +344,19 @@ option { background:#1a1e2e; }
         <div class="card" style="margin-bottom:1rem;">
           <div style="font-weight:700;margin-bottom:0.75rem;color:#d1d5db;">Status dos jogadores:</div>
           <div class="players-status" id="g-status-grid"></div>
+        </div>
+      </div>
+
+      <!-- Tab chat -->
+      <div id="panel-chat" style="display:none;">
+        <div class="card" style="margin-bottom:0.75rem;padding:0;overflow:hidden;">
+          <div id="chat-messages" style="height:320px;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:0.5rem;">
+            <div style="text-align:center;color:#6b7280;font-size:0.8rem;padding:1rem 0;">Início do chat — discutam quem é o impostor! 🕵️</div>
+          </div>
+          <div style="border-top:1px solid rgba(255,255,255,0.08);padding:0.75rem;display:flex;gap:0.5rem;">
+            <input class="input" id="chat-input" placeholder="Digite sua mensagem..." maxlength="200" onkeypress="handleChatKey(event)" style="flex:1;">
+            <button class="btn btn-danger btn-sm" onclick="sendChat()" style="padding:0.75rem 1rem;flex-shrink:0;">↑</button>
+          </div>
         </div>
       </div>
 
@@ -434,13 +457,30 @@ async function updateRoom(id, updater) {
   return next;
 }
 
+let pollingInterval = null;
+
 function subscribeRoom(id, cb) {
   if (subscription) { sb.removeChannel(subscription); subscription = null; }
+  if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
+
   subscription = sb.channel('room-' + id)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${id}` }, payload => {
       if (payload.new && payload.new.state) cb(payload.new.state);
     })
-    .subscribe();
+    .subscribe((status) => {
+      console.log('Realtime status:', status);
+    });
+
+  // Polling fallback a cada 2s
+  pollingInterval = setInterval(async () => {
+    const state = await getRoom(id);
+    if (state) {
+      const json = JSON.stringify(state);
+      if (json !== JSON.stringify(lastState)) {
+        cb(state);
+      }
+    }
+  }, 2000);
 }
 
 // ═══════════════════════════════════════════════
@@ -617,13 +657,7 @@ function renderReveal(state) {
   }
 
   const revMsg = document.getElementById('rev-msg');
-  if (me.isImpostor && !me.knowsRole) {
-    revMsg.style.display = 'block';
-    revMsg.textContent = '⚠️ Atenção: você pode ser o impostor! Preste atenção na discussão.';
-    revMsg.className = 'msg msg-err';
-  } else {
-    revMsg.style.display = 'none';
-  }
+  revMsg.style.display = 'none';
 
   document.getElementById('rev-btn').style.display = 'inline-flex';
   document.getElementById('rev-wait').style.display = 'none';
@@ -664,6 +698,7 @@ function renderGame(state) {
   renderVoteGrid(state);
   renderStatusGrid(state);
   renderResults(state);
+  renderChat(state);
 
   // reveal question btn (host only, question mode)
   const revQBtn = document.getElementById('g-reveal-question-btn');
@@ -771,8 +806,15 @@ async function castVote(targetId) {
 function switchTab(tab) {
   document.getElementById('tab-vote').classList.toggle('active', tab==='vote');
   document.getElementById('tab-players').classList.toggle('active', tab==='players');
+  document.getElementById('tab-chat').classList.toggle('active', tab==='chat');
   document.getElementById('panel-vote').style.display = tab==='vote'?'block':'none';
   document.getElementById('panel-players').style.display = tab==='players'?'block':'none';
+  document.getElementById('panel-chat').style.display = tab==='chat'?'block':'none';
+  if (tab==='chat') {
+    scrollChat();
+    document.getElementById('chat-input').focus();
+    document.getElementById('tab-chat').textContent = '💬 Chat';
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -815,11 +857,15 @@ async function hostRevealQuestion() {
 }
 
 async function hostNextRound() {
+  lastChatCount = 0;
+  const container = document.getElementById('chat-messages');
+  if (container) { container.innerHTML = '<div style="text-align:center;color:#6b7280;font-size:0.8rem;padding:1rem 0;">Nova rodada — discutam quem é o impostor! 🕵️</div>'; }
   const state = await getRoom(local.roomId);
   await setRoom(local.roomId, {
     ...state,
     round: (state.round||1)+1,
     votes: {},
+    chat: [],
     announcement: null,
     revealImpostors: false,
     players: state.players.map(p=>({...p,voted:null,confirmed:false}))
@@ -836,6 +882,7 @@ async function hostEndGame() {
 // ═══════════════════════════════════════════════
 async function leaveRoom() {
   if (subscription) { sb.removeChannel(subscription); subscription=null; }
+  if (pollingInterval) { clearInterval(pollingInterval); pollingInterval=null; }
   if (local.roomId) {
     await updateRoom(local.roomId, s => ({
       ...s,
@@ -845,6 +892,75 @@ async function leaveRoom() {
   local = { playerId:null,playerName:null,roomId:null,isHost:false,numImpostors:1,gameMode:'blind',myWord:null,myQuestion:null,myRole:null,voted:null,eliminateTarget:null,confirmed:false };
   lastState = null;
   show('s-menu');
+}
+
+// ═══════════════════════════════════════════════
+// CHAT
+// ═══════════════════════════════════════════════
+let lastChatCount = 0;
+
+function handleChatKey(e) { if (e.key === 'Enter') sendChat(); }
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || !local.roomId) return;
+  input.value = '';
+
+  const msg = {
+    id: genId(),
+    playerId: local.playerId,
+    playerName: local.playerName,
+    text,
+    ts: Date.now()
+  };
+
+  await updateRoom(local.roomId, s => ({
+    ...s,
+    chat: [...(s.chat || []).slice(-99), msg]
+  }));
+}
+
+function renderChat(state) {
+  const msgs = state.chat || [];
+  if (msgs.length === lastChatCount) return;
+  lastChatCount = msgs.length;
+
+  const container = document.getElementById('chat-messages');
+  const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+
+  const intro = container.querySelector('div[style*="text-align:center"]');
+  const existing = [...container.querySelectorAll('.chat-wrap')];
+  const existingIds = new Set(existing.map(el => el.dataset.id));
+
+  msgs.forEach(msg => {
+    if (existingIds.has(msg.id)) return;
+    const mine = msg.playerId === local.playerId;
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-wrap ' + (mine ? 'mine' : 'theirs');
+    wrap.dataset.id = msg.id;
+    wrap.innerHTML = `
+      <div class="chat-name ${mine?'mine':''}">${mine ? 'Você' : msg.playerName}</div>
+      <div class="chat-bubble ${mine?'mine':'theirs'}">${escapeHtml(msg.text)}</div>`;
+    container.appendChild(wrap);
+  });
+
+  if (isAtBottom) scrollChat();
+
+  // badge no tab se não estiver aberto
+  const chatActive = document.getElementById('panel-chat').style.display !== 'none';
+  if (!chatActive && msgs.length > lastChatCount) {
+    document.getElementById('tab-chat').textContent = '💬 Chat 🔴';
+  }
+}
+
+function scrollChat() {
+  const c = document.getElementById('chat-messages');
+  if (c) c.scrollTop = c.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ═══════════════════════════════════════════════
