@@ -685,8 +685,9 @@ function renderGame(state) {
 
   const me = state.assignments[local.playerId];
   const isImp = me?.isImpostor;
-  document.getElementById('g-role-badge').textContent = isImp ? '🎭 IMPOSTOR' : '👤 Crewmate';
-  document.getElementById('g-role-badge').className = 'badge ' + (isImp ? 'badge-rose' : 'badge-blue');
+  const showImpBadge = isImp && state.mode !== 'question';
+  document.getElementById('g-role-badge').textContent = showImpBadge ? '🎭 IMPOSTOR' : '👤 Crewmate';
+  document.getElementById('g-role-badge').className = 'badge ' + (showImpBadge ? 'badge-rose' : 'badge-blue');
 
   document.getElementById('g-round').textContent = state.round;
   document.getElementById('g-players').textContent = state.players.length;
@@ -934,7 +935,10 @@ function renderChat(state) {
   const existingIds = new Set(existing.map(el => el.dataset.id));
 
   msgs.forEach(msg => {
-    if (existingIds.has(msg.id)) return;
+    const prevCount = lastChatCount;
+  lastChatCount = msgs.length;
+
+  if (existingIds.has(msg.id)) return;
     const mine = msg.playerId === local.playerId;
     const wrap = document.createElement('div');
     wrap.className = 'chat-wrap ' + (mine ? 'mine' : 'theirs');
@@ -949,7 +953,7 @@ function renderChat(state) {
 
   // badge no tab se não estiver aberto
   const chatActive = document.getElementById('panel-chat').style.display !== 'none';
-  if (!chatActive && msgs.length > lastChatCount) {
+  if (!chatActive && msgs.length > prevCount) {
     document.getElementById('tab-chat').textContent = '💬 Chat 🔴';
   }
 }
@@ -977,17 +981,15 @@ function onStateChange(state) {
   }
 
   if (state.phase === 'reveal') {
-    // check if all confirmed
     const allConfirmed = state.players.every(p=>p.confirmed);
     if (allConfirmed && local.isHost) {
-      // move to game
       updateRoom(local.roomId, s=>({...s,phase:'game'}));
       return;
     }
+    // Qualquer jogador que ainda não viu a reveal, mostra agora
     if (current !== 's-reveal') {
       renderReveal(state);
     } else if (local.confirmed) {
-      // just update wait count
       const notReady = state.players.filter(p=>!p.confirmed).length;
       document.getElementById('rev-wait').textContent = `Aguardando ${notReady} jogador${notReady!==1?'es':''} confirmar...`;
     }
