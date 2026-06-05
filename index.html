@@ -593,9 +593,15 @@ async function hostStart() {
   if (!state || state.players.length < 2) return;
 
   const themeData = themes[state.theme];
-  const players = shuffle([...state.players]);
+  const players = [...state.players];
   const numImp = Math.min(state.numImpostors, players.length - 1);
-  const impostorIds = players.slice(0, numImp).map(p => p.id);
+  // Sorteio verdadeiramente aleatório por índice
+  const indices = Array.from({length: players.length}, (_, i) => i);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  const impostorIds = indices.slice(0, numImp).map(i => players[i].id);
 
   const assignments = {};
 
