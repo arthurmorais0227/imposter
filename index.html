@@ -735,9 +735,65 @@ function renderWaiting(state) {
 // ═══════════════════════════════════════════════
 // HOST INICIAR
 // ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// GERADOR DE CONTEÚDO VIA CLAUDE API
+// ═══════════════════════════════════════════════
+const themeNames = {
+  comida: 'comidas e bebidas brasileiras e internacionais',
+  objetos: 'objetos do cotidiano',
+  famosos: 'celebridades famosas no Brasil',
+  animais: 'animais',
+  filmes: 'filmes conhecidos no Brasil',
+};
+
+async function generateContent(theme, mode) {
+  const themeName = themeNames[theme] || theme;
+
+  let prompt;
+  if (mode === 'question') {
+    prompt = `Gere 2 perguntas DIFERENTES sobre o tema "${themeName}" para um jogo de dedução social.
+A pergunta principal deve ser sobre um item específico desse tema (ex: "Qual é sua pizza favorita?").
+A pergunta do impostor deve ser sobre um item DIFERENTE do mesmo tema, mas não deve revelar que é diferente.
+Responda APENAS com JSON, sem texto extra:
+{"mainQuestion": "...", "impostorQuestion": "..."}`;
+  } else {
+    prompt = `Gere uma palavra do tema "${themeName}" para um jogo de dedução social.
+Escolha algo específico e interessante (não genérico demais).
+Forneça também:
+- uma dica de 1 palavra que dá uma pista sutil sobre a palavra (para o modo consciente)
+- uma palavra alternativa do mesmo tema (para o impostor no modo cego), que seja relacionada mas claramente diferente
+
+Responda APENAS com JSON, sem texto extra:
+{"word": "...", "hint": "...", "impostorWord": "..."}`;
+  }
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 200,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+  } catch (e) {
+    console.warn('Claude API falhou, usando fallback local', e);
+    return null;
+  }
+}
+
 async function hostStart() {
   const state = await getRoom(local.roomId);
   if (!state || state.players.length < 2) return;
+
+  const btn = document.getElementById('lobby-start-btn');
+  btn.disabled = true;
+  btn.textContent = '✨ Gerando conteúdo...';
 
   const themeData = themes[state.theme];
   const players = [...state.players];
@@ -748,10 +804,19 @@ async function hostStart() {
 
   const assignments = {};
 
+  // Tenta gerar via Claude; cai no fallback local se falhar
+  const generated = await generateContent(state.theme, state.mode);
+
   if (state.mode === 'question') {
-    const mainQ = rnd(themeData.questions);
-    let impQ = rnd(themeData.questions);
-    while (impQ === mainQ && themeData.questions.length > 1) impQ = rnd(themeData.questions);
+    let mainQ, impQ;
+    if (generated?.mainQuestion && generated?.impostorQuestion) {
+      mainQ = generated.mainQuestion;
+      impQ = generated.impostorQuestion;
+    } else {
+      mainQ = rnd(themeData.questions);
+      impQ = rnd(themeData.questions.filter(q => q !== mainQ));
+    }
+
     players.forEach(p => {
       assignments[p.id] = impostorIds.includes(p.id)
         ? { type:'question', question: impQ, isImpostor: true }
@@ -771,18 +836,28 @@ async function hostStart() {
     };
     await setRoom(local.roomId, next);
   } else {
-    const wordObj = rnd(themeData.words);
+    let word, hint, impostorWord;
+    if (generated?.word && generated?.hint && generated?.impostorWord) {
+      word = generated.word;
+      hint = generated.hint;
+      impostorWord = generated.impostorWord;
+    } else {
+      const wordObj = rnd(themeData.words);
+      word = wordObj.word;
+      hint = wordObj.hint;
+      const other = themeData.words.filter(w => w.word !== word);
+      impostorWord = rnd(other).word;
+    }
+
     players.forEach(p => {
       if (impostorIds.includes(p.id)) {
         if (state.mode === 'blind') {
-          const other = themeData.words.filter(w => w.word !== wordObj.word);
-          const diff = rnd(other);
-          assignments[p.id] = { type:'word', word: diff.word, hint: null, isImpostor: true, knowsRole: false };
+          assignments[p.id] = { type:'word', word: impostorWord, hint: null, isImpostor: true, knowsRole: false };
         } else {
-          assignments[p.id] = { type:'word', word: null, hint: wordObj.hint, isImpostor: true, knowsRole: true };
+          assignments[p.id] = { type:'word', word: null, hint: hint, isImpostor: true, knowsRole: true };
         }
       } else {
-        assignments[p.id] = { type:'word', word: wordObj.word, hint: null, isImpostor: false, knowsRole: false };
+        assignments[p.id] = { type:'word', word: word, hint: null, isImpostor: false, knowsRole: false };
       }
     });
     const next = {
@@ -790,7 +865,7 @@ async function hostStart() {
       phase: 'reveal',
       players,
       assignments,
-      mainWord: wordObj.word,
+      mainWord: word,
       votes: {},
       eliminated: [],
       revealImpostors: false,
@@ -799,6 +874,9 @@ async function hostStart() {
     };
     await setRoom(local.roomId, next);
   }
+
+  btn.disabled = false;
+  btn.textContent = 'Iniciar Jogo →';
 }
 
 // ═══════════════════════════════════════════════
