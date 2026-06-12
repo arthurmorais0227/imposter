@@ -80,6 +80,21 @@ body {
 .question-reveal { font-size:1.3rem; font-weight:600; color:#dbeafe; text-align:center; padding:1.5rem; background:rgba(91,107,175,0.1); border:2px solid rgba(91,107,175,0.3); border-radius:0.75rem; line-height:1.6; }
 .impostor-banner { background:rgba(212,100,117,0.15); border:2px solid #D46475; color:#f09aaa; padding:1rem 1.5rem; border-radius:0.75rem; text-align:center; font-weight:700; font-size:1.1rem; letter-spacing:0.05em; margin-bottom:1rem; }
 
+/* ── FIRST SPEAKER BANNER ── */
+.first-speaker-banner {
+  background: rgba(234,179,8,0.15);
+  border: 2px solid rgba(234,179,8,0.5);
+  color: #fde68a;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  margin-bottom: 1rem;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
 .vote-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:0.6rem; }
 .vote-btn { padding:0.75rem; background:rgba(255,255,255,0.06); border:2px solid rgba(255,255,255,0.1); border-radius:0.5rem; color:#fff; cursor:pointer; font-weight:600; font-family:'Exo 2',sans-serif; transition:all 0.2s; font-size:0.95rem; }
 .vote-btn:hover { background:rgba(212,100,117,0.15); border-color:rgba(212,100,117,0.5); }
@@ -121,6 +136,29 @@ option { background:#1a1e2e; }
 .chat-wrap { display:flex; flex-direction:column; }
 .chat-wrap.mine { align-items:flex-end; }
 .chat-wrap.theirs { align-items:flex-start; }
+
+/* ── EDIT PANEL ── */
+.edit-panel { background:rgba(234,179,8,0.06); border:1px solid rgba(234,179,8,0.3); border-radius:1rem; padding:1.5rem; margin-bottom:1rem; }
+.edit-panel label { font-weight:600; display:block; margin-bottom:0.5rem; color:#fde68a; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em; }
+
+/* ── AUTO-ELIMINATE BUTTON ── */
+.btn-auto-eliminate {
+  background: linear-gradient(135deg, rgba(212,100,117,0.3), rgba(212,100,117,0.15));
+  border: 2px solid #D46475;
+  color: #fff;
+  padding: 1rem;
+  width: 100%;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-top: 0.75rem;
+  cursor: pointer;
+  font-family: 'Exo 2', sans-serif;
+  transition: all 0.25s;
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+.btn-auto-eliminate:hover { background: rgba(212,100,117,0.4); transform: translateY(-1px); }
+.btn-auto-eliminate:disabled { opacity: 0.3; cursor: not-allowed; animation: none; transform: none; }
 
 @media(max-width:480px){ .room-code{font-size:2rem;} .vote-grid{grid-template-columns:1fr 1fr;} }
 </style>
@@ -228,12 +266,50 @@ option { background:#1a1e2e; }
     <div class="container">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.5rem;">
         <span class="badge badge-green">● HOST</span>
-        <button class="btn btn-ghost btn-sm" onclick="leaveRoom()">Sair</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="btn btn-ghost btn-sm" onclick="toggleEditPanel()">✏️ Editar Sala</button>
+          <button class="btn btn-ghost btn-sm" onclick="leaveRoom()">Sair</button>
+        </div>
       </div>
       <h2 class="title" style="font-size:1.8rem;">Sala Criada!</h2>
       <p style="text-align:center;color:#9ca3af;margin-bottom:0.5rem;font-size:0.9rem;">Compartilhe o código com os amigos</p>
       <div class="room-code" id="lobby-code">------</div>
       <button class="btn btn-ghost btn-sm" onclick="copyCode()" style="width:100%;margin-bottom:1.5rem;">📋 Copiar Código</button>
+
+      <!-- EDIT PANEL -->
+      <div id="edit-panel" class="edit-panel" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+          <span style="font-weight:700;color:#fde68a;font-size:1rem;">✏️ Editar Configurações</span>
+          <button class="btn btn-ghost btn-sm" onclick="toggleEditPanel()">✕</button>
+        </div>
+        <div style="margin-bottom:0.75rem;">
+          <label>Tema</label>
+          <select class="input" id="edit-theme">
+            <option value="comida">Comida 🍔</option>
+            <option value="objetos">Objetos 📦</option>
+            <option value="famosos">Celebridades 🌟</option>
+            <option value="animais">Animais 🐾</option>
+            <option value="filmes">Filmes 🎬</option>
+          </select>
+        </div>
+        <div style="margin-bottom:0.75rem;">
+          <label>Modo de jogo</label>
+          <select class="input" id="edit-mode">
+            <option value="blind">Modo Cego 🙈</option>
+            <option value="aware">Modo Consciente 🎭</option>
+            <option value="question">Modo Pergunta 🎤</option>
+          </select>
+        </div>
+        <div style="margin-bottom:1rem;">
+          <label>Número de impostores</label>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn btn-secondary btn-sm" id="edit-imp1" onclick="setEditImp(1)" style="flex:1;border-color:rgba(212,100,117,0.6);background:rgba(212,100,117,0.15);">1 Impostor</button>
+            <button class="btn btn-secondary btn-sm" id="edit-imp2" onclick="setEditImp(2)" style="flex:1;">2 Impostores</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveRoomEdits()" style="width:100%;padding:0.75rem;font-size:0.95rem;">💾 Salvar Alterações</button>
+        <div id="edit-ok" class="msg msg-ok" style="display:none;margin-top:0.75rem;margin-bottom:0;">✓ Configurações atualizadas!</div>
+      </div>
 
       <div class="card" style="margin-bottom:1rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
@@ -266,13 +342,15 @@ option { background:#1a1e2e; }
   </div>
 </div>
 
-<!-- ═══ REVEAL (cada jogador vê sua palavra/pergunta) ═══ -->
+<!-- ═══ REVEAL ═══ -->
 <div id="s-reveal" class="screen">
   <div class="content">
     <div class="container" style="text-align:center;max-width:480px;">
       <div style="font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.2em;color:#D46475;margin-bottom:1rem;opacity:0.7;">PALAVRA SECRETA</div>
       <div style="font-size:2rem;font-weight:900;margin-bottom:0.5rem;" id="rev-name"></div>
       <div id="rev-content" style="margin:1.5rem 0;"></div>
+      <!-- FIRST SPEAKER BANNER -->
+      <div id="rev-first-speaker" class="first-speaker-banner" style="display:none;"></div>
       <div id="rev-msg" class="msg msg-info" style="display:none;margin-bottom:1rem;"></div>
       <button class="btn btn-primary" id="rev-btn" onclick="confirmReady()" style="width:100%;">Estou pronto ✓</button>
       <p id="rev-wait" style="color:#9ca3af;font-size:0.85rem;margin-top:1rem;display:none;">Aguardando os outros jogadores...</p>
@@ -294,6 +372,9 @@ option { background:#1a1e2e; }
         <div class="stat"><div class="stat-val" id="g-impostors">?</div><div class="stat-lbl">Impostores</div></div>
         <div class="stat"><div class="stat-val" id="g-players">0</div><div class="stat-lbl">Jogadores</div></div>
       </div>
+
+      <!-- FIRST SPEAKER DISPLAY IN GAME -->
+      <div id="g-first-speaker" style="display:none;" class="first-speaker-banner"></div>
 
       <div id="g-host-controls" style="display:none;">
         <div class="card card-rose" style="margin-bottom:1rem;">
@@ -325,10 +406,12 @@ option { background:#1a1e2e; }
           <div id="g-results-content"></div>
         </div>
 
+        <!-- AUTO-ELIMINATE BUTTON (host only) -->
         <div id="g-host-eliminate" style="display:none;margin-top:1rem;">
-          <div style="font-weight:700;margin-bottom:0.75rem;color:#d1d5db;">Eliminar jogador:</div>
-          <div class="vote-grid" id="g-elim-grid"></div>
-          <button class="btn btn-danger" onclick="hostEliminate()" style="width:100%;margin-top:0.75rem;">Eliminar Selecionado</button>
+          <div id="g-most-voted-info" style="font-size:0.85rem;color:#9ca3af;margin-bottom:0.5rem;text-align:center;"></div>
+          <button class="btn-auto-eliminate" id="g-elim-btn" onclick="hostEliminate()">
+            🗳 Eliminar Mais Votado
+          </button>
         </div>
 
         <div id="g-reveal-question-btn" style="display:none;margin-top:1rem;">
@@ -394,12 +477,12 @@ let local = {
   roomId: null,
   isHost: false,
   numImpostors: 1,
+  editNumImpostors: 1,
   gameMode: 'blind',
   myWord: null,
   myQuestion: null,
   myRole: null,
   voted: null,
-  eliminateTarget: null,
   confirmed: false,
 };
 
@@ -419,7 +502,31 @@ function showJoin() { show('s-join'); }
 function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function genCode() { return Math.random().toString(36).substring(2,8).toUpperCase(); }
 function genId() { return Math.random().toString(36).substring(2,12); }
-function shuffle(a) { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+// ── TRULY RANDOM SHUFFLE (Fisher-Yates) ──
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    // Use crypto.getRandomValues for true randomness
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    const j = buf[0] % (i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ── PICK RANDOM IMPOSTORS (guaranteed random, not always host) ──
+function pickImpostors(players, count) {
+  const shuffled = shuffle(players);
+  return shuffled.slice(0, count).map(p => p.id);
+}
+
+// ── PICK RANDOM FIRST SPEAKER ──
+function pickFirstSpeaker(players) {
+  const shuffled = shuffle(players);
+  return shuffled[0];
+}
 
 function selectMode(el, val) {
   document.querySelectorAll('.role-option').forEach(o => o.classList.remove('active'));
@@ -437,6 +544,50 @@ function setImp(n) {
 
 function copyCode() {
   navigator.clipboard.writeText(local.roomId).then(() => alert('Código copiado!'));
+}
+
+// ═══════════════════════════════════════════════
+// EDIT PANEL (host edits room after creation)
+// ═══════════════════════════════════════════════
+function toggleEditPanel() {
+  const panel = document.getElementById('edit-panel');
+  const isOpen = panel.style.display !== 'none';
+  if (!isOpen && lastState) {
+    // Pre-fill with current values
+    document.getElementById('edit-theme').value = lastState.theme || 'comida';
+    document.getElementById('edit-mode').value = lastState.mode || 'blind';
+    local.editNumImpostors = lastState.numImpostors || 1;
+    setEditImp(local.editNumImpostors);
+  }
+  panel.style.display = isOpen ? 'none' : 'block';
+  document.getElementById('edit-ok').style.display = 'none';
+}
+
+function setEditImp(n) {
+  local.editNumImpostors = n;
+  document.getElementById('edit-imp1').style.borderColor = n===1 ? 'rgba(212,100,117,0.6)' : '';
+  document.getElementById('edit-imp1').style.background = n===1 ? 'rgba(212,100,117,0.15)' : '';
+  document.getElementById('edit-imp2').style.borderColor = n===2 ? 'rgba(212,100,117,0.6)' : '';
+  document.getElementById('edit-imp2').style.background = n===2 ? 'rgba(212,100,117,0.15)' : '';
+}
+
+async function saveRoomEdits() {
+  const theme = document.getElementById('edit-theme').value;
+  const mode = document.getElementById('edit-mode').value;
+  const numImpostors = local.editNumImpostors;
+
+  await updateRoom(local.roomId, s => ({
+    ...s,
+    theme,
+    mode,
+    numImpostors,
+  }));
+
+  document.getElementById('edit-ok').style.display = 'block';
+  setTimeout(() => {
+    document.getElementById('edit-ok').style.display = 'none';
+    document.getElementById('edit-panel').style.display = 'none';
+  }, 2000);
 }
 
 // ═══════════════════════════════════════════════
@@ -467,11 +618,8 @@ function subscribeRoom(id, cb) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${id}` }, payload => {
       if (payload.new && payload.new.state) cb(payload.new.state);
     })
-    .subscribe((status) => {
-      console.log('Realtime status:', status);
-    });
+    .subscribe();
 
-  // Polling fallback a cada 2s
   pollingInterval = setInterval(async () => {
     const state = await getRoom(id);
     if (state) {
@@ -516,6 +664,8 @@ async function createRoom() {
     revealImpostors: false,
     correctQuestion: null,
     announcement: null,
+    firstSpeaker: null,
+    chat: [],
   };
 
   await setRoom(local.roomId, state);
@@ -586,7 +736,7 @@ function renderWaiting(state) {
 }
 
 // ═══════════════════════════════════════════════
-// HOST INICIAR
+// HOST INICIAR — impostores e primeiro a falar são sempre sorteados
 // ═══════════════════════════════════════════════
 async function hostStart() {
   const state = await getRoom(local.roomId);
@@ -595,13 +745,12 @@ async function hostStart() {
   const themeData = themes[state.theme];
   const players = [...state.players];
   const numImp = Math.min(state.numImpostors, players.length - 1);
-  // Sorteio verdadeiramente aleatório por índice
-  const indices = Array.from({length: players.length}, (_, i) => i);
-  for (let i = indices.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [indices[i], indices[j]] = [indices[j], indices[i]];
-  }
-  const impostorIds = indices.slice(0, numImp).map(i => players[i].id);
+
+  // ── SORTEIO VERDADEIRAMENTE ALEATÓRIO DOS IMPOSTORES ──
+  const impostorIds = pickImpostors(players, numImp);
+
+  // ── SORTEIO DO PRIMEIRO A FALAR ──
+  const firstSpeaker = pickFirstSpeaker(players);
 
   const assignments = {};
 
@@ -614,7 +763,18 @@ async function hostStart() {
         ? { type:'question', question: impQ, isImpostor: true }
         : { type:'question', question: mainQ, isImpostor: false };
     });
-    const next = { ...state, phase:'reveal', players, assignments, correctQuestion: mainQ, votes:{}, eliminated:[], revealImpostors:false, announcement:null };
+    const next = {
+      ...state,
+      phase: 'reveal',
+      players,
+      assignments,
+      correctQuestion: mainQ,
+      votes: {},
+      eliminated: [],
+      revealImpostors: false,
+      announcement: null,
+      firstSpeaker: { id: firstSpeaker.id, name: firstSpeaker.name },
+    };
     await setRoom(local.roomId, next);
   } else {
     const wordObj = rnd(themeData.words);
@@ -631,7 +791,18 @@ async function hostStart() {
         assignments[p.id] = { type:'word', word: wordObj.word, hint: null, isImpostor: false, knowsRole: false };
       }
     });
-    const next = { ...state, phase:'reveal', players, assignments, mainWord: wordObj.word, votes:{}, eliminated:[], revealImpostors:false, announcement:null };
+    const next = {
+      ...state,
+      phase: 'reveal',
+      players,
+      assignments,
+      mainWord: wordObj.word,
+      votes: {},
+      eliminated: [],
+      revealImpostors: false,
+      announcement: null,
+      firstSpeaker: { id: firstSpeaker.id, name: firstSpeaker.name },
+    };
     await setRoom(local.roomId, next);
   }
 }
@@ -662,11 +833,22 @@ function renderReveal(state) {
     content.innerHTML = `<div class="word-reveal">${me.word}</div>`;
   }
 
-  const revMsg = document.getElementById('rev-msg');
-  revMsg.style.display = 'none';
+  // ── MOSTRAR QUEM COMEÇA A FALAR ──
+  const fsBanner = document.getElementById('rev-first-speaker');
+  if (state.firstSpeaker) {
+    fsBanner.style.display = 'block';
+    if (state.firstSpeaker.id === local.playerId) {
+      fsBanner.textContent = '🎙️ Você foi sorteado(a) para começar a falar!';
+    } else {
+      fsBanner.textContent = `🎙️ ${state.firstSpeaker.name} começa a falar primeiro!`;
+    }
+  } else {
+    fsBanner.style.display = 'none';
+  }
 
   document.getElementById('rev-btn').style.display = 'inline-flex';
   document.getElementById('rev-wait').style.display = 'none';
+  document.getElementById('rev-msg').style.display = 'none';
 
   show('s-reveal');
 }
@@ -702,6 +884,19 @@ function renderGame(state) {
 
   document.getElementById('g-host-controls').style.display = local.isHost ? 'block' : 'none';
 
+  // ── FIRST SPEAKER IN GAME ──
+  const fsGame = document.getElementById('g-first-speaker');
+  if (state.firstSpeaker) {
+    fsGame.style.display = 'block';
+    if (state.firstSpeaker.id === local.playerId) {
+      fsGame.textContent = '🎙️ Você começa! Descreva sua palavra sem dizê-la.';
+    } else {
+      fsGame.textContent = `🎙️ ${state.firstSpeaker.name} começa a falar!`;
+    }
+  } else {
+    fsGame.style.display = 'none';
+  }
+
   renderVoteGrid(state);
   renderStatusGrid(state);
   renderResults(state);
@@ -716,14 +911,11 @@ function renderGame(state) {
     document.getElementById('g-correct-q-text').textContent = state.correctQuestion.text || state.correctQuestion;
   }
 
-  // host eliminate grid
+  // ── AUTO-ELIMINATE BUTTON (host only) ──
   const elimPanel = document.getElementById('g-host-eliminate');
   if (local.isHost) {
     elimPanel.style.display = 'block';
-    const elimGrid = document.getElementById('g-elim-grid');
-    elimGrid.innerHTML = state.players.map(p =>
-      `<button class="vote-btn ${local.eliminateTarget===p.id?'selected':''}" onclick="selectElim('${p.id}')">${p.name}</button>`
-    ).join('');
+    updateAutoEliminateButton(state);
   } else {
     elimPanel.style.display = 'none';
   }
@@ -745,6 +937,56 @@ function renderGame(state) {
     ann2.textContent = '🎭 Impostores: ' + impostors.join(', ');
     ann2.className = 'msg msg-err';
   }
+}
+
+// ── CALCULAR MAIS VOTADO E ATUALIZAR BOTÃO ──
+function getMostVoted(state) {
+  const votes = state.votes || {};
+  const tally = {};
+  Object.values(votes).forEach(id => { tally[id] = (tally[id]||0)+1; });
+
+  let maxVotes = 0;
+  let mostVotedId = null;
+  Object.entries(tally).forEach(([id, count]) => {
+    if (count > maxVotes) { maxVotes = count; mostVotedId = id; }
+  });
+
+  if (!mostVotedId) return null;
+
+  // Check for tie
+  const tied = Object.entries(tally).filter(([, c]) => c === maxVotes);
+  if (tied.length > 1) return { tied: true, count: maxVotes };
+
+  const player = state.players.find(p => p.id === mostVotedId);
+  return player ? { id: mostVotedId, name: player.name, count: maxVotes, tied: false } : null;
+}
+
+function updateAutoEliminateButton(state) {
+  const btn = document.getElementById('g-elim-btn');
+  const info = document.getElementById('g-most-voted-info');
+  const votes = state.votes || {};
+  const totalVoters = state.players.length;
+  const voted = Object.keys(votes).length;
+
+  const most = getMostVoted(state);
+
+  if (!most) {
+    btn.disabled = true;
+    info.textContent = 'Aguardando votos...';
+    btn.textContent = '🗳 Eliminar Mais Votado';
+    return;
+  }
+
+  if (most.tied) {
+    btn.disabled = true;
+    info.textContent = `Empate com ${most.count} votos — aguarde mais votos`;
+    btn.textContent = '🗳 Eliminar Mais Votado';
+    return;
+  }
+
+  btn.disabled = false;
+  info.textContent = `${voted}/${totalVoters} votaram — mais votado: ${most.name} (${most.count} voto${most.count!==1?'s':''})`;
+  btn.textContent = `🗳 Eliminar ${most.name}`;
 }
 
 function renderVoteGrid(state) {
@@ -785,15 +1027,21 @@ function renderResults(state) {
   Object.values(votes).forEach(id => { tally[id] = (tally[id]||0)+1; });
 
   const content = document.getElementById('g-results-content');
-  content.innerHTML = state.players.map(p => {
+
+  // Sort players by vote count descending
+  const sorted = [...state.players].sort((a,b) => (tally[b.id]||0) - (tally[a.id]||0));
+
+  content.innerHTML = sorted.map(p => {
     const count = tally[p.id] || 0;
     const pct = totalVoters > 0 ? Math.round(count/totalVoters*100) : 0;
+    const isMostVoted = count > 0 && count === Math.max(...Object.values(tally));
     return `<div style="margin-bottom:0.75rem;">
       <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;">
-        <span>${p.name}</span><span style="color:#D46475;font-weight:700;">${count} voto${count!==1?'s':''}</span>
+        <span>${p.name}${isMostVoted && count > 0?' 🎯':''}</span>
+        <span style="color:#D46475;font-weight:700;">${count} voto${count!==1?'s':''}</span>
       </div>
       <div style="height:6px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;">
-        <div style="height:100%;width:${pct}%;background:#D46475;border-radius:999px;transition:width 0.5s;"></div>
+        <div style="height:100%;width:${pct}%;background:${isMostVoted?'#D46475':'rgba(91,107,175,0.6)'};border-radius:999px;transition:width 0.5s;"></div>
       </div>
     </div>`;
   }).join('') + `<div style="font-size:0.8rem;color:#9ca3af;margin-top:0.5rem;">${voted}/${totalVoters} votaram</div>`;
@@ -827,29 +1075,29 @@ function switchTab(tab) {
 // ═══════════════════════════════════════════════
 // AÇÕES DO HOST
 // ═══════════════════════════════════════════════
-function selectElim(id) {
-  local.eliminateTarget = local.eliminateTarget === id ? null : id;
-  const state = lastState;
-  if (state) renderGame(state);
-}
-
+// ── ELIMINAÇÃO AUTOMÁTICA DO MAIS VOTADO ──
 async function hostEliminate() {
-  if (!local.eliminateTarget) { alert('Selecione um jogador para eliminar!'); return; }
   const state = await getRoom(local.roomId);
-  const target = state.players.find(p=>p.id===local.eliminateTarget);
+  const most = getMostVoted(state);
+
+  if (!most || most.tied) {
+    alert(most?.tied ? 'Há um empate! Aguarde mais votos.' : 'Nenhum voto ainda!');
+    return;
+  }
+
+  const target = state.players.find(p => p.id === most.id);
   if (!target) return;
 
-  const isImp = state.assignments[local.eliminateTarget]?.isImpostor;
+  const isImp = state.assignments[most.id]?.isImpostor;
   const msg = isImp
-    ? `🎉 Parabéns! ${target.name} era o Impostor!`
-    : `❌ Errado! ${target.name} era inocente!`;
+    ? `🎉 Parabéns! ${target.name} era o Impostor! (${most.count} votos)`
+    : `❌ Errado! ${target.name} era inocente! (${most.count} votos)`;
 
-  const newPlayers = state.players.filter(p=>p.id!==local.eliminateTarget);
+  const newPlayers = state.players.filter(p => p.id !== most.id);
   const newVotes = {...state.votes};
-  delete newVotes[local.eliminateTarget];
-  Object.keys(newVotes).forEach(k=>{ if(newVotes[k]===local.eliminateTarget) delete newVotes[k]; });
+  delete newVotes[most.id];
+  Object.keys(newVotes).forEach(k => { if(newVotes[k] === most.id) delete newVotes[k]; });
 
-  local.eliminateTarget = null;
   await setRoom(local.roomId, { ...state, players: newPlayers, votes: newVotes, announcement: msg });
 }
 
@@ -896,7 +1144,7 @@ async function leaveRoom() {
       players: s.players.filter(p=>p.id!==local.playerId)
     }));
   }
-  local = { playerId:null,playerName:null,roomId:null,isHost:false,numImpostors:1,gameMode:'blind',myWord:null,myQuestion:null,myRole:null,voted:null,eliminateTarget:null,confirmed:false };
+  local = { playerId:null,playerName:null,roomId:null,isHost:false,numImpostors:1,editNumImpostors:1,gameMode:'blind',myWord:null,myQuestion:null,myRole:null,voted:null,confirmed:false };
   lastState = null;
   show('s-menu');
 }
@@ -905,6 +1153,7 @@ async function leaveRoom() {
 // CHAT
 // ═══════════════════════════════════════════════
 let lastChatCount = 0;
+let prevChatCount = 0;
 
 function handleChatKey(e) { if (e.key === 'Enter') sendChat(); }
 
@@ -931,20 +1180,18 @@ async function sendChat() {
 function renderChat(state) {
   const msgs = state.chat || [];
   if (msgs.length === lastChatCount) return;
+
+  prevChatCount = lastChatCount;
   lastChatCount = msgs.length;
 
   const container = document.getElementById('chat-messages');
   const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
 
-  const intro = container.querySelector('div[style*="text-align:center"]');
   const existing = [...container.querySelectorAll('.chat-wrap')];
   const existingIds = new Set(existing.map(el => el.dataset.id));
 
   msgs.forEach(msg => {
-    const prevCount = lastChatCount;
-  lastChatCount = msgs.length;
-
-  if (existingIds.has(msg.id)) return;
+    if (existingIds.has(msg.id)) return;
     const mine = msg.playerId === local.playerId;
     const wrap = document.createElement('div');
     wrap.className = 'chat-wrap ' + (mine ? 'mine' : 'theirs');
@@ -957,9 +1204,8 @@ function renderChat(state) {
 
   if (isAtBottom) scrollChat();
 
-  // badge no tab se não estiver aberto
   const chatActive = document.getElementById('panel-chat').style.display !== 'none';
-  if (!chatActive && msgs.length > prevCount) {
+  if (!chatActive && msgs.length > prevChatCount) {
     document.getElementById('tab-chat').textContent = '💬 Chat 🔴';
   }
 }
@@ -992,7 +1238,6 @@ function onStateChange(state) {
       updateRoom(local.roomId, s=>({...s,phase:'game'}));
       return;
     }
-    // Qualquer jogador que ainda não viu a reveal, mostra agora
     if (current !== 's-reveal') {
       renderReveal(state);
     } else if (local.confirmed) {
