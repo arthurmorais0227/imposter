@@ -362,8 +362,7 @@ option { background:#1a1e2e; }
 <div id="s-game" class="screen">
   <div class="content">
     <div class="container">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.5rem;">
-        <span class="badge badge-rose" id="g-role-badge"></span>
+      <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:1.5rem;">
         <button class="btn btn-ghost btn-sm" onclick="leaveRoom()">Sair</button>
       </div>
 
@@ -507,7 +506,6 @@ function genId() { return Math.random().toString(36).substring(2,12); }
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
-    // Use crypto.getRandomValues for true randomness
     const buf = new Uint32Array(1);
     crypto.getRandomValues(buf);
     const j = buf[0] % (i + 1);
@@ -516,7 +514,7 @@ function shuffle(arr) {
   return a;
 }
 
-// ── PICK RANDOM IMPOSTORS (guaranteed random, not always host) ──
+// ── PICK RANDOM IMPOSTORS ──
 function pickImpostors(players, count) {
   const shuffled = shuffle(players);
   return shuffled.slice(0, count).map(p => p.id);
@@ -547,13 +545,12 @@ function copyCode() {
 }
 
 // ═══════════════════════════════════════════════
-// EDIT PANEL (host edits room after creation)
+// EDIT PANEL
 // ═══════════════════════════════════════════════
 function toggleEditPanel() {
   const panel = document.getElementById('edit-panel');
   const isOpen = panel.style.display !== 'none';
   if (!isOpen && lastState) {
-    // Pre-fill with current values
     document.getElementById('edit-theme').value = lastState.theme || 'comida';
     document.getElementById('edit-mode').value = lastState.mode || 'blind';
     local.editNumImpostors = lastState.numImpostors || 1;
@@ -736,7 +733,7 @@ function renderWaiting(state) {
 }
 
 // ═══════════════════════════════════════════════
-// HOST INICIAR — impostores e primeiro a falar são sempre sorteados
+// HOST INICIAR
 // ═══════════════════════════════════════════════
 async function hostStart() {
   const state = await getRoom(local.roomId);
@@ -746,10 +743,7 @@ async function hostStart() {
   const players = [...state.players];
   const numImp = Math.min(state.numImpostors, players.length - 1);
 
-  // ── SORTEIO VERDADEIRAMENTE ALEATÓRIO DOS IMPOSTORES ──
   const impostorIds = pickImpostors(players, numImp);
-
-  // ── SORTEIO DO PRIMEIRO A FALAR ──
   const firstSpeaker = pickFirstSpeaker(players);
 
   const assignments = {};
@@ -833,7 +827,6 @@ function renderReveal(state) {
     content.innerHTML = `<div class="word-reveal">${me.word}</div>`;
   }
 
-  // ── MOSTRAR QUEM COMEÇA A FALAR ──
   const fsBanner = document.getElementById('rev-first-speaker');
   if (state.firstSpeaker) {
     fsBanner.style.display = 'block';
@@ -873,9 +866,6 @@ function renderGame(state) {
 
   const me = state.assignments[local.playerId];
   const isImp = me?.isImpostor;
-  const showImpBadge = isImp && state.mode !== 'question';
-  document.getElementById('g-role-badge').textContent = showImpBadge ? '🎭 IMPOSTOR' : '👤 Crewmate';
-  document.getElementById('g-role-badge').className = 'badge ' + (showImpBadge ? 'badge-rose' : 'badge-blue');
 
   document.getElementById('g-round').textContent = state.round;
   document.getElementById('g-players').textContent = state.players.length;
@@ -884,7 +874,6 @@ function renderGame(state) {
 
   document.getElementById('g-host-controls').style.display = local.isHost ? 'block' : 'none';
 
-  // ── FIRST SPEAKER IN GAME ──
   const fsGame = document.getElementById('g-first-speaker');
   if (state.firstSpeaker) {
     fsGame.style.display = 'block';
@@ -902,7 +891,6 @@ function renderGame(state) {
   renderResults(state);
   renderChat(state);
 
-  // reveal question btn (host only, question mode)
   const revQBtn = document.getElementById('g-reveal-question-btn');
   revQBtn.style.display = (local.isHost && state.mode === 'question' && !state.correctQuestion?.shown) ? 'block' : 'none';
 
@@ -911,7 +899,6 @@ function renderGame(state) {
     document.getElementById('g-correct-q-text').textContent = state.correctQuestion.text || state.correctQuestion;
   }
 
-  // ── AUTO-ELIMINATE BUTTON (host only) ──
   const elimPanel = document.getElementById('g-host-eliminate');
   if (local.isHost) {
     elimPanel.style.display = 'block';
@@ -920,7 +907,6 @@ function renderGame(state) {
     elimPanel.style.display = 'none';
   }
 
-  // announcement
   const ann = document.getElementById('g-announcement');
   if (state.announcement) {
     ann.style.display = 'block';
@@ -939,7 +925,7 @@ function renderGame(state) {
   }
 }
 
-// ── CALCULAR MAIS VOTADO E ATUALIZAR BOTÃO ──
+// ── CALCULAR MAIS VOTADO ──
 function getMostVoted(state) {
   const votes = state.votes || {};
   const tally = {};
@@ -953,7 +939,6 @@ function getMostVoted(state) {
 
   if (!mostVotedId) return null;
 
-  // Check for tie
   const tied = Object.entries(tally).filter(([, c]) => c === maxVotes);
   if (tied.length > 1) return { tied: true, count: maxVotes };
 
@@ -1028,7 +1013,6 @@ function renderResults(state) {
 
   const content = document.getElementById('g-results-content');
 
-  // Sort players by vote count descending
   const sorted = [...state.players].sort((a,b) => (tally[b.id]||0) - (tally[a.id]||0));
 
   content.innerHTML = sorted.map(p => {
@@ -1075,7 +1059,6 @@ function switchTab(tab) {
 // ═══════════════════════════════════════════════
 // AÇÕES DO HOST
 // ═══════════════════════════════════════════════
-// ── ELIMINAÇÃO AUTOMÁTICA DO MAIS VOTADO ──
 async function hostEliminate() {
   const state = await getRoom(local.roomId);
   const most = getMostVoted(state);
